@@ -16,20 +16,20 @@ export async function initializeBrowser(): Promise<{ browser: Browser; page: Pag
 }
 
 export async function loginToEnergyManager(page: Page): Promise<void> {
-  await page.goto(`${BASE_URL}/weblogin/`, { waitUntil: 'networkidle0', timeout: 60000 });
+  await page.goto(`${BASE_URL}/weblogin/`, { waitUntil: 'networkidle0', timeout: 80000 });
   try {
     await delay(200);
     await page.waitForSelector('#signin-form', { visible: true });
     await page.type('#loginMail', LOGIN_EMAIL);
     await page.type('#loginPass', LOGIN_PASSWORD);
     await page.waitForSelector('#signin-form [type="submit"]:not([disabled])');
-    const navigationPromise = page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 });
-    await delay(500);
+    const navigationPromise = page.waitForNavigation({ timeout: 180000 });
+    await delay(200);
     await page.click('#signin-form [type="submit"]');
     await navigationPromise;
-    await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 120000 });
+    await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 180000 });
     await handleLoginTip(page);
-    await delay(500);
+    await delay(200);
   } catch (error) {
     console.error('An error occurred during login:', error);
     await captureScreenshot(page, 'login-error.png');

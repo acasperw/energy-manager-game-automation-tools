@@ -1,0 +1,18 @@
+{
+  "name": "energy_manager_web_scraper",
+  "version": "1.0.0",
+  "main": "sell-energy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chart.js": "^3.9.1",
+    "chartjs-node-canvas": "^4.1.6",
+    "puppeteer": "^23.2.0",
+    "sunrise-sunset-js": "^2.2.1"
+  }
+}

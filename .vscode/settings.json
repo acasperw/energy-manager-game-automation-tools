@@ -1,0 +1,14 @@
+{
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.guides.bracketPairs": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.detectIndentation": true,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "[markdown]": {
+    "files.insertFinalNewline": false,
+    "files.trimTrailingWhitespace": false
+  },
+  "cSpell.words": []
+}

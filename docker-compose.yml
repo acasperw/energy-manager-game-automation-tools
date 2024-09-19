@@ -1,0 +1,14 @@
+services:
+  energy-manager:
+    build: .
+    volumes:
+      - ./energy_data:/usr/src/app/energy_data
+      - ./charts:/usr/src/app/charts
+      - ./screenshots:/usr/src/app/screenshots
+    environment:
+      - TZ=UTC
+      - LOGIN_EMAIL=${LOGIN_EMAIL}
+      - LOGIN_PASSWORD=${LOGIN_PASSWORD}
+    env_file:
+      - .env
+    restart: unless-stopped

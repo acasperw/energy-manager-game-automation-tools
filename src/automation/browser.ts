@@ -1,0 +1,61 @@
+import puppeteer, { Browser, Page } from 'puppeteer';
+import { BASE_URL, LOGIN_EMAIL, LOGIN_PASSWORD, SCREENSHOTS_DIR } from '../config';
+import fs from 'fs/promises';
+import path from 'path';
+import { delay } from '../utils/helpers';
+
+export async function initializeBrowser(): Promise<{ browser: Browser; page: Page }> {
+  const browser = await puppeteer.launch({
+    headless: !!process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false'],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+  });
+  const page = await browser.newPage();
+  await page.setViewport({ width: 760, height: 900 });
+  return { browser, page };
+}
+
+export async function loginToEnergyManager(page: Page): Promise<void> {
+  await page.goto(`${BASE_URL}/weblogin/`, { waitUntil: 'networkidle0', timeout: 60000 });
+  try {
+    await delay(200);
+    await page.waitForSelector('#signin-form', { visible: true });
+    await page.type('#loginMail', LOGIN_EMAIL);
+    await page.type('#loginPass', LOGIN_PASSWORD);
+    await page.waitForSelector('#signin-form [type="submit"]:not([disabled])');
+    const navigationPromise = page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 });
+    await delay(500);
+    await page.click('#signin-form [type="submit"]');
+    await navigationPromise;
+    await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 120000 });
+    await handleLoginTip(page);
+    await delay(500);
+  } catch (error) {
+    console.error('An error occurred during login:', error);
+    await captureScreenshot(page, 'login-error.png');
+    throw error;
+  }
+}
+
+async function handleLoginTip(page: Page): Promise<void> {
+  const loginTipElName = '#login-tip';
+  const loginTipElement = await page.$(loginTipElName);
+  if (loginTipElement) {
+    const isDisplayed = await page.evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return style && style.display !== 'none' && style.visibility !== 'hidden' && (el as HTMLElement).offsetHeight > 0;
+    }, loginTipElement);
+    if (isDisplayed) {
+      await loginTipElement.click();
+      await page.waitForSelector(loginTipElName, { hidden: true });
+    }
+  }
+}
+
+export async function captureScreenshot(page: Page, filename: string): Promise<void> {
+  const screenshotDir = path.resolve(SCREENSHOTS_DIR);
+  const screenshotPath = path.join(screenshotDir, filename);
+  console.log(`Capturing screenshot: ${screenshotPath}`);
+  await fs.mkdir(screenshotDir, { recursive: true });
+  await page.screenshot({ path: screenshotPath, fullPage: true });
+}

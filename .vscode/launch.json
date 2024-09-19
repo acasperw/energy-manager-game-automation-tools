@@ -1,0 +1,86 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    // Debug Scheduler (index.ts)
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Scheduler",
+      "program": "${workspaceFolder}/src/index.ts",
+      "runtimeArgs": [
+        "--require",
+        "ts-node/register"
+      ],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "args": [],
+      "sourceMaps": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**",
+        "node_modules/**"
+      ],
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/**/*.ts"
+      ],
+    },
+    // Debug Sell Energy Task
+    // {
+    //   "type": "node",
+    //   "request": "launch",
+    //   "name": "Debug Sell Energy Task",
+    //   "program": "${workspaceFolder}/src/individual-run-apps/sell-energy.ts",
+    //   "runtimeArgs": [
+    //     "--require",
+    //     "ts-node/register"
+    //   ],
+    //   "cwd": "${workspaceFolder}",
+    //   "envFile": "${workspaceFolder}/.env",
+    //   "args": [],
+    //   "sourceMaps": true,
+    //   "internalConsoleOptions": "openOnSessionStart",
+    //   "skipFiles": [
+    //     "<node_internals>/**",
+    //     "node_modules/**"
+    //   ],
+    //   "resolveSourceMapLocations": [
+    //     "${workspaceFolder}/**",
+    //     "!**/node_modules/**"
+    //   ],
+    //   "outFiles": [
+    //     "${workspaceFolder}/**/*.ts"
+    //   ]
+    // },
+    // // Debug Enable Storages Task
+    // {
+    //   "type": "node",
+    //   "request": "launch",
+    //   "name": "Debug Enable Storages Task",
+    //   "program": "${workspaceFolder}/src/individual-run-apps/enable-storages.ts",
+    //   "runtimeArgs": [
+    //     "--require",
+    //     "ts-node/register"
+    //   ],
+    //   "cwd": "${workspaceFolder}",
+    //   "envFile": "${workspaceFolder}/.env",
+    //   "args": [],
+    //   "sourceMaps": true,
+    //   "internalConsoleOptions": "openOnSessionStart",
+    //   "skipFiles": [
+    //     "<node_internals>/**",
+    //     "node_modules/**"
+    //   ],
+    //   "resolveSourceMapLocations": [
+    //     "${workspaceFolder}/**",
+    //     "!**/node_modules/**"
+    //   ],
+    //   "outFiles": [
+    //     "${workspaceFolder}/**/*.ts"
+    //   ]
+    // }
+  ]
+}

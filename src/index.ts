@@ -17,20 +17,6 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let enabledPlants = 0;
 
   if (decisions.sellEnergy) {
-
-    // // TEMP INFO FOR TESTING
-    // console.log('Energy grids in isLowDemand mode:');
-    // const gridsInLowDemand = data.energyGrids.filter(grid => grid.isLowDemand);
-    // gridsInLowDemand.sort((a, b) => a.mwhValue - b.mwhValue);
-    // console.log(gridsInLowDemand.slice(0, 15));
-
-
-    // const gridsWithCharge = data.energyGrids.filter(grid => grid.totalCurrentCharge > 0);
-    // console.log('Energy grids with charge:');
-    // gridsWithCharge.sort((a, b) => a.mwhValue - b.mwhValue);
-    // console.log(gridsWithCharge.slice(0, 15));
-    // // END TEMP INFO
-
     energySalesInfo = await sellGridEnergy(page, data);
   }
 

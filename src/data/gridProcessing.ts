@@ -4,14 +4,6 @@ import { ensureSidebarOpen, hideSalesResultPopup } from "../automation/interacti
 import { delay } from "../utils/helpers";
 import { captureScreenshot } from "../automation/browser";
 import { clickElement } from "../automation/helpers";
-import { filterGridsByStorageType } from "../utils/grid-utils";
-
-export function getAllEligibleEnergyGrids(energyGrids: GridStorage[]): GridStorage[] {
-  const nonP2xGrids = filterGridsByStorageType(energyGrids, 'non-p2x');
-  return nonP2xGrids
-    .filter(grid => !grid.isLowDemand)
-    .sort((a, b) => b.mwhValue - a.mwhValue);
-}
 
 // function getTheoreticalMaxValue(value: number, pctOfMaxPrice: number) {
 //   return (value / pctOfMaxPrice) * 100;

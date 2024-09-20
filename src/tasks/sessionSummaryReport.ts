@@ -16,9 +16,9 @@ export async function sessionSummaryReport(
   const soldGrids = energySalesInfo.processedGridsResults.filter(grid => grid.action === 'sold');
   const totalSales = soldGrids.reduce((acc, grid) => acc + grid.sale, 0);
   const totalAdditionalProfit = soldGrids.reduce((acc, grid) => acc + grid.additionalProfit, 0);
-  console.log(`Processed ${energySalesInfo.processedGrids} grids and sold ${soldGrids.length} for a total of ${formatCurrency(totalSales)} (${formatCurrency(totalAdditionalProfit)} additional profit)`);
+  console.log(`Processed ${energySalesInfo.processedGrids} grids and sold ${soldGrids.length} for a total of ${formatCurrency(totalSales)}${totalAdditionalProfit > 0 ? ` (${formatCurrency(totalAdditionalProfit)} additional profit)` : ''}.`);
   energySalesInfo.processedGridsResults.forEach(grid => {
-    console.log(`Grid ${grid.gridName}: ${grid.action === 'sold' ? `Sold for ${formatCurrency(grid.sale)} (${formatCurrency(grid.additionalProfit)} additional profit)` : `Kept ${grid.highUpcomingValue ? 'due to higher upcoming value' : 'as it was not profitable'}`}`);
+    console.log(`Grid ${grid.gridName}: ${grid.action === 'sold' ? `Sold ${grid.soldTo ? `to ${grid.soldTo}` : ''} for ${formatCurrency(grid.sale)} (${formatCurrency(grid.additionalProfit)} additional profit)` : `Kept ${grid.highUpcomingValue ? 'due to higher upcoming value' : 'as it was not profitable'}`}`);
   });
 
 

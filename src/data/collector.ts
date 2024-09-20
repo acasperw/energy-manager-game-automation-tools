@@ -22,11 +22,11 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   const gridList = Object.keys(userData.grid).reduce((acc, key) => { acc[key] = parseInt(key); return acc; }, {} as Record<string, number>);
   const demandUpdateResponse = await postApiData<Record<string, number>>(page, demandUpdateEndpoint, { gridList });
 
-  // Process energy grids
-  const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse);
-
   // Process plants
-  const plants = processPlants(userData.plants);
+  const { plants, storagePlantCount } = processPlants(userData.plants);
+
+  // Process energy grids & storages
+  const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount);
 
   return {
     plants: plants,
@@ -37,9 +37,11 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   };
 }
 
-function processPlants(plants: UserData['plants']): Plant[] {
+function processPlants(plantsData: UserData['plants']): { plants: Plant[], storagePlantCount: Record<string, number> } {
   const processedPlants: Plant[] = [];
-  for (const [plantId, plant] of Object.entries(plants)) {
+  const storagePlantCount: Record<string, number> = {};
+
+  for (const [plantId, plant] of Object.entries(plantsData)) {
     processedPlants.push({
       plantId,
       plantType: plant.plantType,
@@ -53,11 +55,20 @@ function processPlants(plants: UserData['plants']): Plant[] {
       lat: plant.lat,
       lon: plant.lon
     });
+
+    const storageId = plant.storageId.toString();
+    storagePlantCount[storageId] = (storagePlantCount[storageId] || 0) + 1;
   }
-  return processedPlants;
+
+  return { plants: processedPlants, storagePlantCount };
 }
 
-function processEnergyGrids(userData: UserData, productionData: ProductionData, demandUpdateResponse: Record<string, number>): GridStorage[] {
+function processEnergyGrids(
+  userData: UserData,
+  productionData: ProductionData,
+  demandUpdateResponse: Record<string, number>,
+  storagePlantCount: Record<string, number>
+): GridStorage[] {
   const gridMap = new Map<string, GridStorage>();
 
   for (const [storageId, storage] of Object.entries(productionData)) {
@@ -70,11 +81,14 @@ function processEnergyGrids(userData: UserData, productionData: ProductionData, 
     const capacity = storage.capacity;
     const storageType = storage.type;
 
+    const plantsConnected = storagePlantCount[storageId] || 0;
+
     const storageInfo: StorageInfo = {
       id: storageId,
       type: storageType,
       currentCharge,
       capacity,
+      plantsConnected
     };
 
     if (!gridMap.has(gridId)) {
@@ -86,18 +100,23 @@ function processEnergyGrids(userData: UserData, productionData: ProductionData, 
         pctOfMaxPrice,
         demand,
         isLowDemand: demand < 10000 || demand < currentCharge,
-        totalCurrentCharge: currentCharge,
-        totalCapacity: capacity,
-        chargePercentage: (currentCharge / capacity) * 100,
+        totalCurrentCharge: plantsConnected > 0 ? currentCharge : 0,
+        totalCapacity: plantsConnected > 0 ? capacity : 0,
+        chargePercentage: plantsConnected > 0 ? (currentCharge / capacity) * 100 : 0,
         discharging: userData.storage[storageId].discharging === 1,
       });
     } else {
       const existingGrid = gridMap.get(gridId)!;
       existingGrid.storages.push(storageInfo);
-      existingGrid.totalCurrentCharge += currentCharge;
-      existingGrid.totalCapacity += capacity;
+
+      if (plantsConnected > 0) {
+        existingGrid.totalCurrentCharge += currentCharge;
+        existingGrid.totalCapacity += capacity;
+      }
       existingGrid.isLowDemand = existingGrid.isLowDemand || (demand < 10000 || demand < existingGrid.totalCurrentCharge);
-      existingGrid.chargePercentage = (existingGrid.totalCurrentCharge / existingGrid.totalCapacity) * 100;
+      existingGrid.chargePercentage = existingGrid.totalCapacity > 0
+        ? (existingGrid.totalCurrentCharge / existingGrid.totalCapacity) * 100
+        : 0;
     }
   }
 

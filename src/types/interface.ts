@@ -15,6 +15,7 @@ export interface StorageInfo {
   type: 'p2x' | 'chemical' | 'gravity';
   currentCharge: number;
   capacity: number;
+  plantsConnected: number;
 }
 
 export interface GridStorage {

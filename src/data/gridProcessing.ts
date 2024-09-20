@@ -3,6 +3,7 @@ import { EnergySalesInfo, GridStorage } from "../types/interface";
 import { ensureSidebarOpen, hideSalesResultPopup } from "../automation/interactions";
 import { delay } from "../utils/helpers";
 import { captureScreenshot } from "../automation/browser";
+import { clickElement } from "../automation/helpers";
 
 export function getAllEligibleEnergyGrids(energyGrids: GridStorage[]): GridStorage[] {
   return energyGrids
@@ -43,9 +44,9 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
   switch (sellDecision.action) {
     case 'sell':
       if (sellDecision.target === 'alternative') {
-        await page.click(bestOption!.buttonSelector);
+        await clickElement(page, bestOption!.buttonSelector)
       } else {
-        await page.click('#sell-to-grid-btn');
+        await clickElement(page, '#sell-to-grid-btn');
       }
       await hideSalesResultPopup(page);
       break;

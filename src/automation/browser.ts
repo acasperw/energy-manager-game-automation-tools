@@ -3,6 +3,7 @@ import { BASE_URL, LOGIN_EMAIL, LOGIN_PASSWORD, SCREENSHOTS_DIR } from '../confi
 import fs from 'fs/promises';
 import path from 'path';
 import { delay } from '../utils/helpers';
+import { clickElement } from './helpers';
 
 export async function initializeBrowser(): Promise<{ browser: Browser; page: Page }> {
   const browser = await puppeteer.launch({
@@ -17,6 +18,11 @@ export async function initializeBrowser(): Promise<{ browser: Browser; page: Pag
 
 export async function loginToEnergyManager(page: Page): Promise<void> {
   await page.goto(`${BASE_URL}/weblogin/`, { waitUntil: 'networkidle0', timeout: 80000 });
+
+  if (!LOGIN_EMAIL || !LOGIN_PASSWORD) {
+    throw new Error('Please set LOGIN_EMAIL and LOGIN_PASSWORD in the .env file');
+  }
+
   try {
     await delay(200);
     await page.waitForSelector('#signin-form', { visible: true });
@@ -25,7 +31,7 @@ export async function loginToEnergyManager(page: Page): Promise<void> {
     await page.waitForSelector('#signin-form [type="submit"]:not([disabled])');
     const navigationPromise = page.waitForNavigation({ timeout: 180000 });
     await delay(200);
-    await page.click('#signin-form [type="submit"]');
+    await clickElement(page, '#signin-form [type="submit"]');
     await navigationPromise;
     await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 180000 });
     await handleLoginTip(page);

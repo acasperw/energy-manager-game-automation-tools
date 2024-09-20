@@ -7,6 +7,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   let sellHydrogen = false;
   let sellEnergy = false;
   let buyCo2Quotas = false;
+  let reenableSolarPlants = false;
 
   // Power grids (excluding p2x storages)
   const nonP2xGrids = filterGridsByStorageType(data.energyGrids, 'non-p2x');
@@ -32,7 +33,23 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     enableStoragesPlants = true;
   }
 
-  const reenableSolarPlants = false;
+  const solarPlantsToReenable: string[] = [];
+  const discrepancyThreshold = 0.25;
+  for (const grid of data.energyGrids) {
+    for (const storage of grid.storages) {
+      if (storage.plantsConnected > 0) {
+        const expectedCharge = storage.expectedChargePerSec;
+        const actualCharge = storage.chargePerSec;
+        if (expectedCharge > 0 && actualCharge / expectedCharge < (1 - discrepancyThreshold)) {
+          reenableSolarPlants = true;
+          const affectedPlantIds = data.plants
+            .filter(plant => plant.storageId.toString() === storage.id && plant.plantType === 'solar')
+            .map(plant => plant.plantId);
+          solarPlantsToReenable.push(...affectedPlantIds);
+        }
+      }
+    }
+  }
 
   return {
     sellEnergy,
@@ -40,5 +57,6 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     buyCo2Quotas,
     enableStoragesPlants,
     reenableSolarPlants,
+    solarPlantsToReenable
   };
 }

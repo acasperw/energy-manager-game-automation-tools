@@ -8,6 +8,7 @@ export interface TaskDecisions {
   buyCo2Quotas: boolean;
   enableStoragesPlants: boolean;
   reenableSolarPlants: boolean;
+  solarPlantsToReenable: string[];
 }
 
 export interface StorageInfo {
@@ -16,6 +17,8 @@ export interface StorageInfo {
   currentCharge: number;
   capacity: number;
   plantsConnected: number;
+  chargePerSec: number;
+  expectedChargePerSec: number;
 }
 
 export interface GridStorage {

@@ -9,12 +9,14 @@ import { sellGridHydrogen } from './tasks/sellGridHydrogen';
 import { enableStoragesPlants } from './tasks/enableStoragesPlants';
 import { sessionSummaryReport } from './tasks/sessionSummaryReport';
 import { buyC02Quotas } from './tasks/buyC02Quotas';
+import { reEnableSolarPlants } from './tasks/reEnableSolarPlants';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page) {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
   let co2QuotasBought = 0;
   let enabledPlants = 0;
+  let reenabledSolarPlants = 0;
 
   if (decisions.sellEnergy) {
     energySalesInfo = await sellGridEnergy(page, data);
@@ -32,7 +34,11 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     enabledPlants = await enableStoragesPlants(page, data);
   }
 
-  await sessionSummaryReport(data, decisions, energySalesInfo, hydrogenSalesTotal, co2QuotasBought, enabledPlants);
+  if (decisions.reenableSolarPlants) {
+    reenabledSolarPlants = await reEnableSolarPlants(page, data, decisions);
+  }
+
+  await sessionSummaryReport(data, decisions, energySalesInfo, hydrogenSalesTotal, co2QuotasBought, enabledPlants, reenabledSolarPlants);
 }
 
 export async function mainTask() {

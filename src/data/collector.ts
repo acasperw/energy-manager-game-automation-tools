@@ -23,10 +23,10 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   const demandUpdateResponse = await postApiData<Record<string, number>>(page, demandUpdateEndpoint, { gridList });
 
   // Process plants
-  const { plants, storagePlantCount } = processPlants(userData.plants);
+  const { plants, storagePlantCount, storagePlantOutputs } = processPlants(userData.plants);
 
   // Process energy grids & storages
-  const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount);
+  const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
 
   return {
     plants: plants,
@@ -37,9 +37,14 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   };
 }
 
-function processPlants(plantsData: UserData['plants']): { plants: Plant[], storagePlantCount: Record<string, number> } {
+function processPlants(plantsData: UserData['plants']): {
+  plants: Plant[],
+  storagePlantCount: Record<string, number>,
+  storagePlantOutputs: Record<string, number>
+} {
   const processedPlants: Plant[] = [];
   const storagePlantCount: Record<string, number> = {};
+  const storagePlantOutputs: Record<string, number> = {};
 
   for (const [plantId, plant] of Object.entries(plantsData)) {
     processedPlants.push({
@@ -58,16 +63,18 @@ function processPlants(plantsData: UserData['plants']): { plants: Plant[], stora
 
     const storageId = plant.storageId.toString();
     storagePlantCount[storageId] = (storagePlantCount[storageId] || 0) + 1;
+    storagePlantOutputs[storageId] = (storagePlantOutputs[storageId] || 0) + plant.output;
   }
 
-  return { plants: processedPlants, storagePlantCount };
+  return { plants: processedPlants, storagePlantCount, storagePlantOutputs };
 }
 
 function processEnergyGrids(
   userData: UserData,
   productionData: ProductionData,
   demandUpdateResponse: Record<string, number>,
-  storagePlantCount: Record<string, number>
+  storagePlantCount: Record<string, number>,
+  storagePlantOutputs: Record<string, number>
 ): GridStorage[] {
   const gridMap = new Map<string, GridStorage>();
 
@@ -82,13 +89,17 @@ function processEnergyGrids(
     const storageType = storage.type;
 
     const plantsConnected = storagePlantCount[storageId] || 0;
+    const totalPlantOutputKW = storagePlantOutputs[storageId] || 0;
+    const expectedChargePerSec = totalPlantOutputKW / 1000; // Convert KW to MW
 
     const storageInfo: StorageInfo = {
       id: storageId,
       type: storageType,
       currentCharge,
       capacity,
-      plantsConnected
+      plantsConnected,
+      chargePerSec: storage.chargePerSec, // From API data
+      expectedChargePerSec,
     };
 
     if (!gridMap.has(gridId)) {

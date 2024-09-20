@@ -8,39 +8,43 @@ export async function sessionSummaryReport(
   energySalesInfo: EnergySalesProcess,
   hydrogenSalesTotal: HydrogenSalesInfo,
   co2QuotasBought: number,
-  enabledPlants: number
+  enabledPlants: number,
+  reenabledSolarPlants: number
 ) {
   console.log('\n\n--------- Session summary report --------');
 
-  console.log('\nEnergy Sales:');
-  const soldGrids = energySalesInfo.processedGridsResults.filter(grid => grid.action === 'sold');
-  const totalSales = soldGrids.reduce((acc, grid) => acc + grid.sale, 0);
-  const totalAdditionalProfit = soldGrids.reduce((acc, grid) => acc + grid.additionalProfit, 0);
-  console.log(`Processed ${energySalesInfo.processedGrids} grids and sold ${soldGrids.length} for a total of ${formatCurrency(totalSales)}${totalAdditionalProfit > 0 ? ` (${formatCurrency(totalAdditionalProfit)} additional profit)` : ''}.`);
-  energySalesInfo.processedGridsResults.forEach(grid => {
-    console.log(`Grid ${grid.gridName}: ${grid.action === 'sold' ? `Sold ${grid.soldTo ? `to ${grid.soldTo}` : ''} for ${formatCurrency(grid.sale)} (${formatCurrency(grid.additionalProfit)} additional profit)` : `Kept ${grid.highUpcomingValue ? 'due to higher upcoming value' : 'as it was not profitable'}`}`);
-  });
+  if (energySalesInfo.processedGridsResults.length > 0) {
+    console.log('\nEnergy Sales:');
+    const soldGrids = energySalesInfo.processedGridsResults.filter(grid => grid.action === 'sold');
+    const totalSales = soldGrids.reduce((acc, grid) => acc + grid.sale, 0);
+    const totalAdditionalProfit = soldGrids.reduce((acc, grid) => acc + grid.additionalProfit, 0);
+    console.log(`Processed ${energySalesInfo.processedGrids} grids and sold ${soldGrids.length} for a total of ${formatCurrency(totalSales)}${totalAdditionalProfit > 0 ? ` (${formatCurrency(totalAdditionalProfit)} additional profit)` : ''}.`);
+    energySalesInfo.processedGridsResults.forEach(grid => {
+      console.log(`Grid ${grid.gridName}: ${grid.action === 'sold' ? `Sold ${grid.soldTo ? `to ${grid.soldTo}` : ''} for ${formatCurrency(grid.sale)} (${formatCurrency(grid.additionalProfit)} additional profit)` : `Kept ${grid.highUpcomingValue ? 'due to higher upcoming value' : 'as it was not profitable'}`}`);
+    });
+  }
 
-
-  console.log('\nHydrogen:');
-  console.log(`Value was ${formatCurrency(data.hydrogenValue)} and was ${data.hydrogenValue > HYDROGEN_PRICE_THRESHOLD_MIN ? 'eligible' : 'not eligible'} for selling. (Threshold: ${formatCurrency(HYDROGEN_PRICE_THRESHOLD_MIN)})`);
   if (decisions.sellHydrogen && hydrogenSalesTotal.sale > 0) {
-    console.log(`Hydrogen sales total: ${formatCurrency(hydrogenSalesTotal.sale)}${hydrogenSalesTotal.includingSilo ? ' (including silo)' : ''}`);
-  } else {
-    console.log('No hydrogen sales were made.');
+    console.log('\nHydrogen:');
+    console.log(`Value was ${formatCurrency(data.hydrogenValue)} and was ${data.hydrogenValue > HYDROGEN_PRICE_THRESHOLD_MIN ? 'eligible' : 'not eligible'} for selling. (Threshold: ${formatCurrency(HYDROGEN_PRICE_THRESHOLD_MIN)})`);
+    if (decisions.sellHydrogen && hydrogenSalesTotal.sale > 0) {
+      console.log(`Hydrogen sales total: ${formatCurrency(hydrogenSalesTotal.sale)}${hydrogenSalesTotal.includingSilo ? ' (including silo)' : ''}`);
+    } else {
+      console.log('No hydrogen sales were made.');
+    }
   }
 
-  console.log('\nCO2 Quotas:');
   if (decisions.buyCo2Quotas && co2QuotasBought > 0) {
-    console.log(`CO2 quotas bought for ${formatCurrency(data.co2Value)} (Threshold: ${formatCurrency(CO2_PRICE_THRESHOLD_MAX)}): ${co2QuotasBought}`);
-  } else {
-    console.log('No CO2 quotas were bought.');
+    console.log('\nCO2 Quotas:');
+    if (decisions.buyCo2Quotas && co2QuotasBought > 0) {
+      console.log(`CO2 quotas bought for ${formatCurrency(data.co2Value)} (Threshold: ${formatCurrency(CO2_PRICE_THRESHOLD_MAX)}): ${co2QuotasBought}`);
+    } else {
+      console.log('No CO2 quotas were bought.');
+    }
   }
 
-
-  // console.log(`Total output: ${data.plants.reduce((acc, plant) => acc + plant.output!, 0)}`);
   const highWearPlants = data.plants.filter(plant => plant.wear! > 80);
-  if (highWearPlants.length > 0 || enabledPlants > 0) {
+  if (highWearPlants.length > 0 || enabledPlants > 0 || (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length)) {
     console.log('\nPlants:');
   }
   if (highWearPlants.length > 0) {
@@ -53,6 +57,11 @@ export async function sessionSummaryReport(
     });
   }
   if (enabledPlants > 0) {
-    console.log(`Enabled ${enabledPlants} plants.\n`);
+    console.log(`Enabled ${enabledPlants} plants.`);
   }
+  if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
+    console.log(`Re-enabled ${reenabledSolarPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
+  }
+  console.log('\n');
+
 }

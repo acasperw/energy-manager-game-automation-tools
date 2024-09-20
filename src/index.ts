@@ -1,5 +1,5 @@
 import { scheduleJob } from 'node-schedule';
-import { EnergySalesProcess, GameSessionData, TaskDecisions } from './types/interface';
+import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, TaskDecisions } from './types/interface';
 import { Page } from 'puppeteer';
 import { initializeBrowser, loginToEnergyManager } from './automation/browser';
 import { fetchGameSessionData } from './data/collector';
@@ -12,7 +12,7 @@ import { buyC02Quotas } from './tasks/buyC02Quotas';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page) {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
-  let hydrogenSalesTotal = 0;
+  let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
   let co2QuotasBought = 0;
   let enabledPlants = 0;
 

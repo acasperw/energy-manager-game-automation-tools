@@ -1,12 +1,12 @@
 import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN } from "../config";
-import { EnergySalesProcess, GameSessionData, TaskDecisions } from "../types/interface";
+import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, TaskDecisions } from "../types/interface";
 import { formatCurrency } from "../utils/helpers";
 
 export async function sessionSummaryReport(
   data: GameSessionData,
   decisions: TaskDecisions,
   energySalesInfo: EnergySalesProcess,
-  hydrogenSalesTotal: number,
+  hydrogenSalesTotal: HydrogenSalesInfo,
   co2QuotasBought: number,
   enabledPlants: number
 ) {
@@ -24,8 +24,8 @@ export async function sessionSummaryReport(
 
   console.log('\nHydrogen:');
   console.log(`Value was ${formatCurrency(data.hydrogenValue)} and was ${data.hydrogenValue > HYDROGEN_PRICE_THRESHOLD_MIN ? 'eligible' : 'not eligible'} for selling. (Threshold: ${formatCurrency(HYDROGEN_PRICE_THRESHOLD_MIN)})`);
-  if (decisions.sellHydrogen && hydrogenSalesTotal > 0) {
-    console.log(`Hydrogen sales total: ${formatCurrency(hydrogenSalesTotal)}`);
+  if (decisions.sellHydrogen && hydrogenSalesTotal.sale > 0) {
+    console.log(`Hydrogen sales total: ${formatCurrency(hydrogenSalesTotal.sale)}${hydrogenSalesTotal.includingSilo ? ' (including silo)' : ''}`);
   } else {
     console.log('No hydrogen sales were made.');
   }

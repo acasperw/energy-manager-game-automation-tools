@@ -52,3 +52,8 @@ export interface EnergySalesInfo {
   soldTo?: string | null;
   highUpcomingValue?: boolean;
 }
+
+export interface HydrogenSalesInfo {
+  sale: number;
+  includingSilo: boolean;
+}

@@ -3,13 +3,15 @@ import { EnergySalesProcess, GameSessionData } from "../types/interface";
 import { ensureSidebarOpen } from "../automation/interactions";
 import { getAllEligibleEnergyGrids, processEnergyGrid } from "../data/gridProcessing";
 import { STORAGE_CHARGE_THRESHOLD_MIN } from "../config";
+import { filterGridsByStorageType, isGridChargeAboveThreshold } from "../utils/grid-utils";
 
 export async function sellGridEnergy(page: Page, data: GameSessionData): Promise<EnergySalesProcess> {
-
   let processedGrids = 0;
   let processedGridsResults = [];
-  const eligibleGrids = getAllEligibleEnergyGrids(data.energyGrids);
-  const salesEligibleGrids = data.energyGrids.filter(grid => grid.chargePercentage > STORAGE_CHARGE_THRESHOLD_MIN).filter(energyGrids => energyGrids.storages.some(storage => storage.type !== 'p2x'));
+
+  const nonP2xGrids = filterGridsByStorageType(data.energyGrids, 'non-p2x');
+  const salesEligibleGrids = nonP2xGrids.filter(grid => isGridChargeAboveThreshold(grid, 'non-p2x', STORAGE_CHARGE_THRESHOLD_MIN));
+  const eligibleGrids = getAllEligibleEnergyGrids(salesEligibleGrids);
 
   await ensureSidebarOpen(page);
 

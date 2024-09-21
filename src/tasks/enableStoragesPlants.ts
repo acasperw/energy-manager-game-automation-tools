@@ -35,7 +35,7 @@ export async function enableStoragesPlants(page: Page, data: GameSessionData): P
     return { totalEnabled, totalSkipped };
   } catch (error) {
     console.error('Error in enableStoragesPlants:', error);
-    await captureScreenshot(page, 'enableStoragesPlants');
+    await captureScreenshot(page, 'enableStoragesPlants.png');
     return { totalEnabled, totalSkipped };
   }
 }

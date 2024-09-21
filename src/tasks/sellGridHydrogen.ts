@@ -4,8 +4,11 @@ import { getSalesResultPopup } from "../automation/interactions";
 import { getNumericValue } from "../utils/browser-data-helpers";
 import { delay } from "../utils/helpers";
 import { HydrogenSalesInfo } from "../types/interface";
+import { captureScreenshot } from "../automation/browser";
 
 export async function sellGridHydrogen(page: Page): Promise<HydrogenSalesInfo> {
+  let totalSales = 0;
+  let saleIncludesSilo = false;
   try {
     await clickElement(page, '.footer-new .col[onclick="popup(\'power-exchange.php\');"]');
 
@@ -13,9 +16,6 @@ export async function sellGridHydrogen(page: Page): Promise<HydrogenSalesInfo> {
     await clickElement(page, '#header-plants');
 
     await delay(1000);
-
-    let totalSales = 0;
-    let saleIncludesSilo = false;
 
     // Sell main hydrogen
     const hydrogenValue = await getNumericValue(page, '.total-hydrogen-value');
@@ -47,10 +47,12 @@ export async function sellGridHydrogen(page: Page): Promise<HydrogenSalesInfo> {
         saleIncludesSilo = true;
       }
     }
-
-    return { sale: totalSales, includingSilo: saleIncludesSilo };
   } catch (error) {
     console.error('Error selling grid hydrogen:', error);
-    return { sale: 0, includingSilo: false };
+    captureScreenshot(page, 'sellGridHydrogen.png');
+  } finally {
+    await page.click('#main-modal-container .opa-light.text-center.intro-disable');
+    await page.waitForSelector('#main-modal-container', { hidden: true });
+    return { sale: totalSales, includingSilo: saleIncludesSilo };
   }
 }

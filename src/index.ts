@@ -16,7 +16,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
   let co2QuotasBought = 0;
   let enabledPlants = 0;
-  let reenabledSolarPlants = 0;
+  let reenabledSolarPlants = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
 
   if (decisions.sellEnergy) {
     energySalesInfo = await sellGridEnergy(page, data);

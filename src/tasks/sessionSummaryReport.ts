@@ -1,6 +1,6 @@
 import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN } from "../config";
-import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, TaskDecisions } from "../types/interface";
-import { formatCurrency } from "../utils/helpers";
+import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlants, TaskDecisions } from "../types/interface";
+import { formatCurrency, formatEnergy } from "../utils/helpers";
 
 export async function sessionSummaryReport(
   data: GameSessionData,
@@ -9,7 +9,7 @@ export async function sessionSummaryReport(
   hydrogenSalesTotal: HydrogenSalesInfo,
   co2QuotasBought: number,
   enabledPlants: number,
-  reenabledSolarPlants: number
+  reenabledSolarPlants: ReEnablePlants
 ) {
   console.log('\n\n--------- Session summary report --------');
 
@@ -60,7 +60,8 @@ export async function sessionSummaryReport(
     console.log(`Enabled ${enabledPlants} plants.`);
   }
   if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
-    console.log(`Re-enabled ${reenabledSolarPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
+    console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
+    console.log(`Energy output: ${formatEnergy(reenabledSolarPlants.kwEnergyBefore)} -> ${formatEnergy(reenabledSolarPlants.kwEnergyAfter)}`);
   }
   console.log('\n');
 

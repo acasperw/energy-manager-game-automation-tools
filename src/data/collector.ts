@@ -153,3 +153,16 @@ async function postApiData<T>(page: Page, url: string, data: any): Promise<T> {
     return await response.json();
   }, url, data) as T;
 }
+
+export async function getEnergyOutputAmount(page: Page): Promise<number | null> {
+  try {
+    const outputKw = await page.$eval('#headerOutput', el => el.getAttribute('output-kw'));
+    if (!outputKw) {
+      throw new Error('Output KW attribute not found');
+    }
+    return parseFloat(outputKw);
+  } catch (error) {
+    console.error('Error getting energy output amount:', error);
+    return null;
+  }
+}

@@ -10,13 +10,24 @@ import { enableStoragesPlants } from './tasks/enableStoragesPlants';
 import { sessionSummaryReport } from './tasks/sessionSummaryReport';
 import { buyC02Quotas } from './tasks/buyC02Quotas';
 import { reEnableSolarPlants } from './tasks/reEnableSolarPlants';
+import { buyOil } from './tasks/buyOil';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page) {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
-  let co2QuotasBought = 0;
-  let enabledPlants = 0;
+  let enabledPlants = { totalEnabled: 0, totalSkipped: 0 };
   let reenabledSolarPlants = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
+  let co2QuotasBought = 0;
+  let oilBought = 0;
+  let uraniumBought = 0;
+
+  if (decisions.buyCo2Quotas) {
+    co2QuotasBought = await buyC02Quotas(page, data);
+  }
+
+  if (decisions.buyOil) {
+    oilBought = await buyOil(page, data);
+  }
 
   if (decisions.sellEnergy) {
     energySalesInfo = await sellGridEnergy(page, data);
@@ -24,10 +35,6 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
 
   if (decisions.sellHydrogen) {
     hydrogenSalesTotal = await sellGridHydrogen(page);
-  }
-
-  if (decisions.buyCo2Quotas) {
-    co2QuotasBought = await buyC02Quotas(page, data);
   }
 
   if (decisions.enableStoragesPlants) {
@@ -38,7 +45,17 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     reenabledSolarPlants = await reEnableSolarPlants(page, data, decisions);
   }
 
-  await sessionSummaryReport(data, decisions, energySalesInfo, hydrogenSalesTotal, co2QuotasBought, enabledPlants, reenabledSolarPlants);
+  await sessionSummaryReport(
+    data,
+    decisions,
+    energySalesInfo,
+    hydrogenSalesTotal,
+    co2QuotasBought,
+    enabledPlants,
+    reenabledSolarPlants,
+    oilBought,
+    uraniumBought
+  );
 }
 
 export async function mainTask() {

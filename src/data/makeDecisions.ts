@@ -1,5 +1,5 @@
 import { GameSessionData, TaskDecisions } from "../types/interface";
-import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, STORAGE_CHARGE_THRESHOLD_MIN } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
 import { filterGridsByStorageType, isGridChargeAboveThreshold } from "../utils/grid-utils";
 
 export function makeDecisions(data: GameSessionData): TaskDecisions {
@@ -8,6 +8,8 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   let sellEnergy = false;
   let buyCo2Quotas = false;
   let reenableSolarPlants = false;
+  let buyOil = false;
+  let buyUranium = false;
 
   // Power grids (excluding p2x storages)
   const nonP2xGrids = filterGridsByStorageType(data.energyGrids, 'non-p2x');
@@ -23,16 +25,12 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     }
   }
 
-  // Co2
-  if (data.co2Value < CO2_PRICE_THRESHOLD_MAX && data.emissionPerKwh > 1) {
-    buyCo2Quotas = true;
-  }
-
   // Storage & Plants
   if (data.plants.some(plant => plant.online === 0)) {
     enableStoragesPlants = true;
   }
 
+  // Solar plants
   const solarPlantsToReenable: string[] = [];
   const discrepancyThreshold = 0.25;
   for (const grid of data.energyGrids) {
@@ -51,12 +49,29 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     }
   }
 
+  // Co2
+  if (data.co2Value < CO2_PRICE_THRESHOLD_MAX && data.emissionPerKwh > 1) {
+    buyCo2Quotas = true;
+  }
+
+  // Oil
+  if (data.oilBuyPrice < OIL_PRICE_THRESHOLD_MAX) {
+    buyOil = true;
+  }
+
+  // Uranium
+  if (data.uraniumPrice < URANIUM_PRICE_THRESHOLD_MAX) {
+    buyUranium = true;
+  }
+
   return {
     sellEnergy,
     sellHydrogen,
-    buyCo2Quotas,
     enableStoragesPlants,
     reenableSolarPlants,
-    solarPlantsToReenable
+    solarPlantsToReenable,
+    buyCo2Quotas,
+    buyOil,
+    buyUranium,
   };
 }

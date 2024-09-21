@@ -9,13 +9,17 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   const productionDataEndpoint = `${BASE_URL}/api/production.php`;
   const hydrogenDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=hydrogen`;
   const co2DataEndpoint = `${BASE_URL}/api/price.history.api.php?target=co2`;
+  const oilBuyPriceDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=oil`;
+  const uraniumPriceDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=uranium`;
   const demandUpdateEndpoint = `${BASE_URL}/api/demand.update.php`;
 
-  const [userData, productionData, hydrogenData, co2Data] = await Promise.all([
+  const [userData, productionData, hydrogenData, co2Data, oilBuyPriceData, uraniumPriceData] = await Promise.all([
     fetchApiData<UserData>(page, userDataEndpoint),
     fetchApiData<ProductionData>(page, productionDataEndpoint),
     fetchApiData<number[]>(page, hydrogenDataEndpoint),
     fetchApiData<number[]>(page, co2DataEndpoint),
+    fetchApiData<number[]>(page, oilBuyPriceDataEndpoint),
+    fetchApiData<number[]>(page, uraniumPriceDataEndpoint),
   ]);
 
   // Get grid demand list
@@ -34,6 +38,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     hydrogenValue: hydrogenData.at(-1) ?? 0,
     emissionPerKwh: userData.userData.emissionPerKwh ?? 0,
     co2Value: co2Data.at(-1) ?? 0,
+    oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
+    uraniumPrice: uraniumPriceData.at(-1) ?? 0,
   };
 }
 

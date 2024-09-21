@@ -57,3 +57,39 @@ export async function hideSalesResultPopup(page: Page) {
     }
   });
 }
+
+export async function switchCommoditiesTab(page: Page, tabName: 'oil' | 'coal' | 'u-235' | 'co2'): Promise<void> {
+  await page.evaluate((tabName) => {
+    const tabOnclickMap: { [key: string]: string } = {
+      'oil': 'commodities.php?type=oil',
+      'coal': 'commodities.php?type=coal',
+      'u-235': 'commodities.php?type=uranium',
+      'co2': 'co2.php',
+    };
+
+    const desiredOnclickSubstring = tabOnclickMap[tabName];
+    const activeButton = document.querySelector('.btn-nav.btn-nav-active');
+    let isActiveTabDesired = false;
+    if (activeButton) {
+      const activeOnclick = activeButton.getAttribute('onclick');
+      if (activeOnclick && activeOnclick.includes(desiredOnclickSubstring)) {
+        isActiveTabDesired = true;
+      }
+    }
+    if (isActiveTabDesired) {
+      return;
+    }
+
+    const buttons = document.querySelectorAll('.btn-nav');
+    for (const button of Array.from(buttons)) {
+      const onclick = button.getAttribute('onclick');
+      if (onclick && onclick.includes(desiredOnclickSubstring)) {
+        (button as HTMLElement).click();
+        return;
+      }
+    }
+    throw new Error(`Could not find tab with name: ${tabName}`);
+  }, tabName);
+
+  await page.waitForSelector('#commodities-main');
+}

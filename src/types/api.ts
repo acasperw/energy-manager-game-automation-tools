@@ -26,7 +26,7 @@ export interface Plant {
   lat: number;
   lon: number;
   online: 0 | 1;
-  plantType: 'wind' | 'solar';
+  plantType: 'wind' | 'solar' | 'fossil';
   storageId: number;
   wear: number;
   output: number;

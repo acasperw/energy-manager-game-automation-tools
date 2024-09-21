@@ -1,4 +1,4 @@
-import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
 import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlants, TaskDecisions } from "../types/interface";
 import { formatCurrency, formatEnergy } from "../utils/helpers";
 
@@ -8,8 +8,10 @@ export async function sessionSummaryReport(
   energySalesInfo: EnergySalesProcess,
   hydrogenSalesTotal: HydrogenSalesInfo,
   co2QuotasBought: number,
-  enabledPlants: number,
-  reenabledSolarPlants: ReEnablePlants
+  enabledPlants: { totalEnabled: number, totalSkipped: number },
+  reenabledSolarPlants: ReEnablePlants,
+  oilBought: number,
+  uraniumBought: number
 ) {
   console.log('\n\n--------- Session summary report --------');
 
@@ -43,8 +45,13 @@ export async function sessionSummaryReport(
     }
   }
 
+  if (decisions.buyOil && oilBought > 0) {
+    console.log('\nOil:');
+    console.log(`Oil bought for ${formatCurrency(data.oilBuyPrice)} (Threshold: ${formatCurrency(OIL_PRICE_THRESHOLD_MAX)}): ${oilBought}`);
+  }
+
   const highWearPlants = data.plants.filter(plant => plant.wear! > 80);
-  if (highWearPlants.length > 0 || enabledPlants > 0 || (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length)) {
+  if (highWearPlants.length > 0 || enabledPlants.totalEnabled > 0 || (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length)) {
     console.log('\nPlants:');
   }
   if (highWearPlants.length > 0) {
@@ -56,8 +63,8 @@ export async function sessionSummaryReport(
       }
     });
   }
-  if (enabledPlants > 0) {
-    console.log(`Enabled ${enabledPlants} plants.`);
+  if (enabledPlants.totalEnabled > 0) {
+    console.log(`Enabled ${enabledPlants} plants${enabledPlants.totalSkipped > 0 ? ` and skipped ${enabledPlants.totalSkipped}` : ''}.`);
   }
   if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
     console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);

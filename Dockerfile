@@ -1,7 +1,6 @@
-# Use the latest LTS version of Node.js with Debian slim
 FROM node:20-slim
 
-# Install Chromium and necessary dependencies
+# Install Chromium and dependencies
 RUN apt-get update && apt-get install -y \
     chromium \
     fonts-ipafont-gothic \
@@ -30,10 +29,9 @@ RUN npm ci
 COPY . .
 
 # Build the TypeScript code
-RUN npm install -g typescript
-RUN tsc
+RUN npm install -g typescript && tsc
 
-# Create directories for data and screenshots (if needed)
+# Create directories for data and screenshots
 RUN mkdir -p energy_data screenshots
 
 # Start the app

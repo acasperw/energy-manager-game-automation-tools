@@ -1,12 +1,12 @@
 import { scheduleJob } from 'node-schedule';
-import { EnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from './types/interface';
+import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from './types/interface';
 import { Page } from 'puppeteer';
 import { initializeBrowser, loginToEnergyManager } from './automation/browser';
 import { fetchGameSessionData } from './data/collector';
 import { makeDecisions } from './data/makeDecisions';
 import { sellGridEnergy } from './tasks/sellGridEnergy';
 import { sellGridHydrogen } from './tasks/sellGridHydrogen';
-import { enableStoragesPlants } from './tasks/enableStoragesPlants';
+import { refuelEnableStoragesPlants } from './tasks/enableStoragesPlants';
 import { sessionSummaryReport } from './tasks/sessionSummaryReport';
 import { buyC02Quotas } from './tasks/buyC02Quotas';
 import { reEnableSolarPlants } from './tasks/reEnableSolarPlants';
@@ -15,7 +15,7 @@ import { buyOil } from './tasks/buyOil';
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page) {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
-  let enabledPlants: EnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0 };
+  let enabledPlants: RefuelEnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0, didRefuel: false };
   let reenabledSolarPlants: ReEnablePlantsResult = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   let co2QuotasBought = 0;
   let oilBought = 0;
@@ -38,12 +38,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   }
 
   if (decisions.enableStoragesPlants) {
-    enabledPlants = await enableStoragesPlants(page, data);
+    enabledPlants = await refuelEnableStoragesPlants(page, data);
   }
-
-  // if (enabledPlants.totalOutOfFuel > 0) {
-  //   https://energymanagergame.com/fuel-management.php?mode=do&pct=60&type=oil
-  // }
 
   if (decisions.reenableSolarPlants) {
     reenabledSolarPlants = await reEnableSolarPlants(page, data, decisions);

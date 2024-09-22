@@ -59,16 +59,8 @@ export async function buyOil(page: Page, data: GameSessionData): Promise<number>
 
     const response = await page.evaluate(async (amount) => {
       const url = `/api/commodities/buy.php?type=oil&amount=${amount}`;
-      const fetchResponse = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-      return {
-        status: fetchResponse.status,
-        ok: fetchResponse.ok,
-      };
+      const fetchResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, });
+      return { status: fetchResponse.status, ok: fetchResponse.ok };
     }, oilToBuy);
 
     if (response.ok) {

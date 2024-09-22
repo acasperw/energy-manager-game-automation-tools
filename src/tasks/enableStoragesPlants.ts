@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { EnableStoragesPlantsResult, GameSessionData } from "../types/interface";
+import { RefuelEnableStoragesPlantsResult, GameSessionData } from "../types/interface";
 import { ensureSidebarOpen, switchTab } from "../automation/interactions";
 import { clickElement } from "../automation/helpers";
 import { captureScreenshot } from "../automation/browser";
@@ -8,21 +8,34 @@ import { Plant } from "../types/api";
 const BATCH_SIZE = 10; // Adjust based on performance testing
 const PLANT_TOGGLE_SELECTOR_PREFIX = '#pwr-pane-toggle-';
 
-export async function enableStoragesPlants(
+/**
+ * Refuels and enables storage plants.
+ * @param page - The Puppeteer Page instance.
+ * @param data - The current game session data.
+ * @returns An object containing the results of the operation.
+ */
+export async function refuelEnableStoragesPlants(
   page: Page,
   data: GameSessionData
-): Promise<EnableStoragesPlantsResult> {
+): Promise<RefuelEnableStoragesPlantsResult> {
   let totalEnabled = 0;
   let totalSkipped = 0;
   let totalOutOfFuel = 0;
+  let didRefuel = false;
 
   try {
     await ensureSidebarOpen(page);
     await switchTab(page, 'plants');
-    await page.waitForSelector('#production-plants-container');
+    await page.waitForSelector('#production-plants-container', { visible: true });
 
-    const offlinePlants: Plant[] = data.plants.filter(plant => plant.online === 0);
+    // Refuel plants if necessary
+    // didRefuel = await reFuelPlants(page, data);
+
+    // Filter plants that are offline
+    const offlinePlants: Plant[] = data.plants.filter(plant => !plant.online);
     const plantToggleSelectors: string[] = offlinePlants.map(plant => `${PLANT_TOGGLE_SELECTOR_PREFIX}${plant.plantId}`);
+
+    // Process in batches
     for (let i = 0; i < plantToggleSelectors.length; i += BATCH_SIZE) {
       const batchSelectors = plantToggleSelectors.slice(i, i + BATCH_SIZE);
       const batchPlants = offlinePlants.slice(i, i + BATCH_SIZE);
@@ -43,6 +56,7 @@ export async function enableStoragesPlants(
           });
 
           if (!oilPlantHasFuel) {
+            // Plant is either discharging or out of fuel
             totalSkipped++;
             totalOutOfFuel++;
             return;
@@ -59,7 +73,7 @@ export async function enableStoragesPlants(
           }
 
           const storage = grid.storages.find(s => s.id === plant.storageId.toString());
-          if (storage && storage.currentCharge >= storage.capacity) { // If hydrogen? storage.type === 'p2x' &&
+          if (storage && storage.currentCharge >= storage.capacity) {
             totalSkipped++;
             return;
           }
@@ -69,16 +83,81 @@ export async function enableStoragesPlants(
           totalEnabled++;
         } catch (plantError) {
           console.error(`Error processing plant ID: ${plant.plantId}`, plantError);
-          await captureScreenshot(page, `enableStoragesPlants_error_plant_${plant.plantId}.png`);
+          await captureScreenshot(page, `refuelEnableStoragesPlants_error_plant_${plant.plantId}.png`);
           totalSkipped++;
         }
-      }));
+      })
+      );
     }
 
-    return { totalEnabled, totalSkipped, totalOutOfFuel };
+    return { totalEnabled, totalSkipped, totalOutOfFuel, didRefuel };
   } catch (error) {
-    console.error('Error in enableStoragesPlants:', error);
-    await captureScreenshot(page, 'enableStoragesPlants_error.png');
-    return { totalEnabled, totalSkipped, totalOutOfFuel };
+    console.error('Error in refuelEnableStoragesPlants:', error);
+    await captureScreenshot(page, 'refuelEnableStoragesPlants_error.png');
+    return { totalEnabled, totalSkipped, totalOutOfFuel, didRefuel };
   }
 }
+
+// /**
+//  * Refuels oil plants by setting the fuel slider to its maximum value.
+//  * @param page - The Puppeteer Page instance.
+//  * @param data - The current game session data.
+//  * @returns A boolean indicating whether refueling was performed.
+//  */
+// async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean> {
+//   let didRefuel = false;
+
+//   try {
+//     // Check if the fuel management container exists
+//     if (await ifElementExists(page, '#fuel-management-container')) {
+//       await page.waitForSelector('#fuel-management-main');
+
+//       // Extract the current value and max value from the slider using the utility function
+//       const { min, max, value } = await getSliderValues(page, '#g-fuel-slide');
+
+//       console.log(`Fuel Slider - Current Value: ${value}%, Max: ${max}%`);
+
+//       if (value < max) {
+//         const pctToSet = max; // Set to maximum percentage
+//         const fuelType = 'oil';
+
+//         // Perform the AJAX POST request to refuel
+//         const response = await page.evaluate(
+//           async (mode: string, pct: number, type: string) => {
+//             const url = `/fuel-management.php?mode=${mode}&pct=${pct}&type=${type}`;
+//             const fetchResponse = await fetch(url, {
+//               method: 'POST',
+//               headers: {
+//                 'Content-Type': 'application/x-www-form-urlencoded',
+//               },
+//             });
+//             return { status: fetchResponse.status, ok: fetchResponse.ok };
+//           },
+//           'do',
+//           pctToSet,
+//           fuelType
+//         );
+
+//         if (response.ok) {
+//           console.log(`Successfully refueled ${fuelType} plants to ${pctToSet}%`);
+//           didRefuel = true;
+
+//           // Optionally, wait for a confirmation element or message
+//           // await page.waitForTimeout(1000); // Adjust based on actual response time
+//         } else {
+//           console.error(`Failed to refuel ${fuelType} plants. Server responded with status: ${response.status}`);
+//           await captureScreenshot(page, `refuelOilPlants_failed_${pctToSet}.png`);
+//         }
+//       } else {
+//         console.log('Fuel slider is already at maximum. No refueling needed.');
+//       }
+//     } else {
+//       console.warn('Fuel management container not found. Skipping refueling.');
+//     }
+//   } catch (error) {
+//     console.error('Error in reFuelPlants:', error);
+//     await captureScreenshot(page, 'reFuelPlants_error.png');
+//   }
+
+//   return didRefuel;
+// }

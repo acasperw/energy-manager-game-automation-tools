@@ -23,7 +23,8 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
   // Check for upcoming high value
   const upcomingMwhValue = await extractUpcomingValue(page);
   const maxTopMwhValue = Math.max(...eligibleGrids.map(g => g.mwhValue * 0.85)); // Apply 10% fee and buffer
-  if (upcomingMwhValue && upcomingMwhValue > maxTopMwhValue) {
+  if (upcomingMwhValue && upcomingMwhValue > maxTopMwhValue && currentGrid.mwhValue < upcomingMwhValue) {
+    await page.click('#details-pane .intro-disable.opa');
     return { gridName: currentGrid.gridName, sale: 0, additionalProfit: 0, action: 'keep', highUpcomingValue: true };
   }
 

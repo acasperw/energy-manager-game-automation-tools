@@ -73,8 +73,9 @@ export interface ReEnablePlantsResult {
   kwEnergyAfter: number;
 }
 
-export interface EnableStoragesPlantsResult {
+export interface RefuelEnableStoragesPlantsResult {
   totalEnabled: number;
   totalSkipped: number;
   totalOutOfFuel: number;
+  didRefuel: boolean;
 }

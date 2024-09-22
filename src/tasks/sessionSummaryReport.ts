@@ -1,5 +1,5 @@
 import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
-import { EnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from "../types/interface";
+import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from "../types/interface";
 import { formatCurrency, formatEnergy } from "../utils/helpers";
 
 export async function sessionSummaryReport(
@@ -8,7 +8,7 @@ export async function sessionSummaryReport(
   energySalesInfo: EnergySalesProcess,
   hydrogenSalesTotal: HydrogenSalesInfo,
   co2QuotasBought: number,
-  enabledPlants: EnableStoragesPlantsResult,
+  enabledPlants: RefuelEnableStoragesPlantsResult,
   reenabledSolarPlants: ReEnablePlantsResult,
   oilBought: number,
   uraniumBought: number

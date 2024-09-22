@@ -117,7 +117,7 @@ export async function mainTask() {
 
 function startScheduler() {
   mainTask();
-  scheduleJob('0 * * * *', mainTask);
+  scheduleJob('10 0 * * * *', mainTask);
 }
 
 startScheduler();

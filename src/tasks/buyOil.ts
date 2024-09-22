@@ -57,6 +57,11 @@ export async function buyOil(page: Page, data: GameSessionData): Promise<number>
   try {
     const oilToBuy = await calculateOilToBuy(page);
 
+    if (data.userMoney < oilToBuy * data.oilBuyPrice) {
+      console.error('Not enough money to buy Oil');
+      return 0;
+    }
+
     const response = await page.evaluate(async (amount) => {
       const url = `/api/commodities/buy.php?type=oil&amount=${amount}`;
       const fetchResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, });

@@ -40,6 +40,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     co2Value: co2Data.at(-1) ?? 0,
     oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
     uraniumPrice: uraniumPriceData.at(-1) ?? 0,
+    userMoney: parseFloat(userData.userData.account),
   };
 }
 

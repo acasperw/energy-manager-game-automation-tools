@@ -46,6 +46,7 @@ export interface GameSessionData {
   co2Value: number;
   oilBuyPrice: number;
   uraniumPrice: number;
+  userMoney: number;
 }
 
 export interface EnergySalesProcess {

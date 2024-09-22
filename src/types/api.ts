@@ -3,6 +3,7 @@ export interface UserData {
   userData: {
     co2neutral: 0 | 1;
     emissionPerKwh: number;
+    account: string; // Available money
 
   };
   plants: {

@@ -13,7 +13,6 @@ export async function sessionSummaryReport(
   oilBought: number,
   uraniumBought: number
 ) {
-  console.log('\n\n--------- Session summary report --------');
 
   if (energySalesInfo.processedGridsResults.length > 0) {
     console.log('\nEnergy Sales:');

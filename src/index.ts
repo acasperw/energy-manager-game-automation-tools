@@ -21,6 +21,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let oilBought = 0;
   let uraniumBought = 0;
 
+  console.log('\n\n--------- Session summary report --------');
+
   if (decisions.buyCo2Quotas) {
     co2QuotasBought = await buyC02Quotas(page, data);
   }

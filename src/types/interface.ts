@@ -41,12 +41,14 @@ export interface GridStorage {
 export interface GameSessionData {
   plants: Plant[];
   energyGrids: GridStorage[];
-  hydrogenValue: number;
   emissionPerKwh: number;
   co2Value: number;
   oilBuyPrice: number;
   uraniumPrice: number;
   userMoney: number;
+
+  hydrogenValue: number;
+  hasHydrogenSiloSpace: boolean;
 }
 
 export interface EnergySalesProcess {

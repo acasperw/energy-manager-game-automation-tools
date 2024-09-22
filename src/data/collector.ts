@@ -2,6 +2,7 @@ import { Page } from "puppeteer";
 import { GameSessionData, GridStorage, StorageInfo } from "../types/interface";
 import { BASE_URL } from "../config";
 import { Plant, ProductionData, UserData } from "../types/api";
+import * as cheerio from 'cheerio';
 
 export async function fetchGameSessionData(page: Page): Promise<GameSessionData> {
   // Define API endpoints
@@ -12,8 +13,16 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   const oilBuyPriceDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=oil`;
   const uraniumPriceDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=uranium`;
   const demandUpdateEndpoint = `${BASE_URL}/api/demand.update.php`;
+  const hydrogenExchangeEndpoint = `${BASE_URL}/hydrogen-exchange.php`;
 
-  const [userData, productionData, hydrogenData, co2Data, oilBuyPriceData, uraniumPriceData] = await Promise.all([
+  const [
+    userData,
+    productionData,
+    hydrogenData,
+    co2Data,
+    oilBuyPriceData,
+    uraniumPriceData,
+  ] = await Promise.all([
     fetchApiData<UserData>(page, userDataEndpoint),
     fetchApiData<ProductionData>(page, productionDataEndpoint),
     fetchApiData<number[]>(page, hydrogenDataEndpoint),
@@ -24,13 +33,17 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
 
   // Get grid demand list
   const gridList = Object.keys(userData.grid).reduce((acc, key) => { acc[key] = parseInt(key); return acc; }, {} as Record<string, number>);
-  const demandUpdateResponse = await postApiData<Record<string, number>>(page, demandUpdateEndpoint, { gridList });
+  const demandUpdateResponse = await postApiDataJson<Record<string, number>>(page, demandUpdateEndpoint, { gridList });
 
   // Process plants
   const { plants, storagePlantCount, storagePlantOutputs } = processPlants(userData.plants);
 
   // Process energy grids & storages
   const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
+
+  // Fetch hydrogen silo data
+  const hydrogenExchangeResponse = await postApiData<string>(page, hydrogenExchangeEndpoint);
+  const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
 
   return {
     plants: plants,
@@ -41,6 +54,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
     uraniumPrice: uraniumPriceData.at(-1) ?? 0,
     userMoney: parseFloat(userData.userData.account),
+    hasHydrogenSiloSpace: hydrogenSiloHolding < hydrogenSiloCapacity,
   };
 }
 
@@ -145,15 +159,39 @@ async function fetchApiData<T>(page: Page, url: string): Promise<T> {
   }, url) as T;
 }
 
-async function postApiData<T>(page: Page, url: string, data: any): Promise<T> {
+async function postApiDataJson<T>(page: Page, url: string, data: any): Promise<T> {
   return await page.evaluate(async (url, data) => {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify(data), });
     return await response.json();
   }, url, data) as T;
+}
+
+async function postApiData<T>(page: Page, url: string): Promise<T> {
+  return await page.evaluate(async (url) => {
+    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', } });
+    return await response.text();
+  }, url) as T;
+}
+
+export function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hydrogenSiloCapacity: number } {
+  const $ = cheerio.load(html);
+  const holdingText = $('.bg-white.h-100.p-2.rounded .text-info').first().text().trim();
+  const capacityText = $('.bg-white.h-100.p-2.rounded .text-secondary.s-text').filter((_, el) => $(el).text().includes('Capacity')).first().text().trim();
+
+  const holdingMatch = holdingText.match(/([\d,.]+)kg/);
+  let hydrogenSiloHolding = 0;
+  if (holdingMatch && holdingMatch[1]) {
+    hydrogenSiloHolding = parseFloat(holdingMatch[1].replace(/,/g, ''));
+  }
+
+  const capacityMatch = capacityText.match(/Capacity:\s*([\d,.]+)kg/);
+  let hydrogenSiloCapacity = 0;
+  if (capacityMatch && capacityMatch[1]) {
+    hydrogenSiloCapacity = parseFloat(capacityMatch[1].replace(/,/g, ''));
+  }
+
+  return {
+    hydrogenSiloHolding: isNaN(hydrogenSiloHolding) ? 0 : hydrogenSiloHolding,
+    hydrogenSiloCapacity: isNaN(hydrogenSiloCapacity) ? 0 : hydrogenSiloCapacity,
+  };
 }

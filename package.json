@@ -10,6 +10,7 @@
   "author": "Alex Whitlock",
   "license": "ISC",
   "dependencies": {
+    "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2",
     "node-schedule": "^2.1.1",
@@ -17,6 +18,7 @@
     "sunrise-sunset-js": "^2.2.1"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.35",
     "@types/node": "^20.0.0",
     "@types/node-schedule": "^2.1.7",
     "ts-node": "^10.9.2",

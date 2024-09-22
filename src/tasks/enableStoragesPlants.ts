@@ -129,10 +129,7 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean>
         const response = await page.evaluate(
           async (mode: string, pct: number, type: string) => {
             const url = `/fuel-management.php?mode=${mode}&pct=${pct}&type=${type}`;
-            const fetchResponse = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded', },
-            });
+            const fetchResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, });
             return { status: fetchResponse.status, ok: fetchResponse.ok };
           }, 'do', pctToSet, fuelType
         );

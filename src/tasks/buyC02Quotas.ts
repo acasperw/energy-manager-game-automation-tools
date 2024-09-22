@@ -12,12 +12,7 @@ export async function buyC02Quotas(page: Page, data: GameSessionData): Promise<n
 
     const response = await page.evaluate(async (amount) => {
       const url = `/api/co2/buy.php?amount=${amount}`;
-      const fetchResponse = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
+      const fetchResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, });
       return {
         status: fetchResponse.status,
         ok: fetchResponse.ok,

@@ -63,7 +63,7 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
 }
 
 async function clickGridAndWaitForDetails(page: Page, energyGrids: GridStorage) {
-  await delay(500);
+  await delay(400);
   await page.waitForSelector('#production-outer', { visible: true });
   const gridSelector = `#production-outer .production-inner[data-grid="${energyGrids.gridName}"]:not(.hidden) .col-12:not(.pane-discharging):not(.hidden) .col-9.p-row-outer.p-row.pointer:not(.p-row-outer-discharge)`;
 

@@ -19,7 +19,7 @@ export async function reEnableSolarPlants(page: Page, data: GameSessionData, dec
     await page.waitForSelector('#production-plants-container');
     const plantsMap = new Map<string, Plant>();
     data.plants.forEach(plant => { plantsMap.set(plant.plantId, plant); });
-    await delay(500);
+    await delay(400);
 
     for (const plantId of plantsToReenableIds) {
       const plant = plantsMap.get(plantId);
@@ -45,7 +45,7 @@ export async function reEnableSolarPlants(page: Page, data: GameSessionData, dec
         }
       }
     }
-    await delay(500);
+    await delay(400);
     reEnablePlants.kwEnergyAfter = await getEnergyOutputAmount(page) ?? 0;
     return reEnablePlants;
   } catch (error) {

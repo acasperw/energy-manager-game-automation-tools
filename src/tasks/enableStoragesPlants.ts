@@ -1,9 +1,11 @@
 import { Page } from "puppeteer";
 import { RefuelEnableStoragesPlantsResult, GameSessionData } from "../types/interface";
 import { ensureSidebarOpen, switchTab } from "../automation/interactions";
-import { clickElement } from "../automation/helpers";
+import { clickElement, ifElementExists } from "../automation/helpers";
 import { captureScreenshot } from "../automation/browser";
 import { Plant } from "../types/api";
+import { getSliderValues } from "../utils/browser-data-helpers";
+import { delay } from "../utils/helpers";
 
 const BATCH_SIZE = 10; // Adjust based on performance testing
 const PLANT_TOGGLE_SELECTOR_PREFIX = '#pwr-pane-toggle-';
@@ -28,8 +30,7 @@ export async function refuelEnableStoragesPlants(
     await switchTab(page, 'plants');
     await page.waitForSelector('#production-plants-container', { visible: true });
 
-    // Refuel plants if necessary
-    // didRefuel = await reFuelPlants(page, data);
+    didRefuel = await reFuelPlants(page, data);
 
     // Filter plants that are offline
     const offlinePlants: Plant[] = data.plants.filter(plant => !plant.online);
@@ -98,66 +99,64 @@ export async function refuelEnableStoragesPlants(
   }
 }
 
-// /**
-//  * Refuels oil plants by setting the fuel slider to its maximum value.
-//  * @param page - The Puppeteer Page instance.
-//  * @param data - The current game session data.
-//  * @returns A boolean indicating whether refueling was performed.
-//  */
-// async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean> {
-//   let didRefuel = false;
+/**
+ * Refuels oil plants by setting the fuel slider to its maximum value.
+ * @param page - The Puppeteer Page instance.
+ * @param data - The current game session data.
+ * @returns A boolean indicating whether refueling was performed.
+ */
+async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean> {
+  let didRefuel = false;
 
-//   try {
-//     // Check if the fuel management container exists
-//     if (await ifElementExists(page, '#fuel-management-container')) {
-//       await page.waitForSelector('#fuel-management-main');
+  try {
+    // Check if the fuel management container exists
+    if (await ifElementExists(page, '#fuel-management-container')) {
+      await page.waitForSelector('#fuel-management-main');
+      await clickElement(page, '#fuel-management');
+      await page.waitForFunction(() => {
+        const fuelManagement = document.querySelector('#fuel-management-main');
+        return (fuelManagement as HTMLElement)?.style.display === 'block';
+      });
+      await delay(400);
 
-//       // Extract the current value and max value from the slider using the utility function
-//       const { min, max, value } = await getSliderValues(page, '#g-fuel-slide');
+      const { min, max, value } = await getSliderValues(page);
 
-//       console.log(`Fuel Slider - Current Value: ${value}%, Max: ${max}%`);
+      if (value < max) {
+        const pctToSet = max; // Set to maximum percentage
+        const fuelType = 'oil';
 
-//       if (value < max) {
-//         const pctToSet = max; // Set to maximum percentage
-//         const fuelType = 'oil';
+        // Perform the AJAX POST request to refuel
+        const response = await page.evaluate(
+          async (mode: string, pct: number, type: string) => {
+            const url = `/fuel-management.php?mode=${mode}&pct=${pct}&type=${type}`;
+            const fetchResponse = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded', },
+            });
+            return { status: fetchResponse.status, ok: fetchResponse.ok };
+          }, 'do', pctToSet, fuelType
+        );
 
-//         // Perform the AJAX POST request to refuel
-//         const response = await page.evaluate(
-//           async (mode: string, pct: number, type: string) => {
-//             const url = `/fuel-management.php?mode=${mode}&pct=${pct}&type=${type}`;
-//             const fetchResponse = await fetch(url, {
-//               method: 'POST',
-//               headers: {
-//                 'Content-Type': 'application/x-www-form-urlencoded',
-//               },
-//             });
-//             return { status: fetchResponse.status, ok: fetchResponse.ok };
-//           },
-//           'do',
-//           pctToSet,
-//           fuelType
-//         );
+        if (response.ok) {
+          console.log(`Successfully refueled ${fuelType} plants to ${pctToSet}%`);
+          didRefuel = true;
 
-//         if (response.ok) {
-//           console.log(`Successfully refueled ${fuelType} plants to ${pctToSet}%`);
-//           didRefuel = true;
+          // Optionally, wait for a confirmation element or message
+          // await page.waitForTimeout(1000); // Adjust based on actual response time
+        } else {
+          console.error(`Failed to refuel ${fuelType} plants. Server responded with status: ${response.status}`);
+          await captureScreenshot(page, `refuelOilPlants_failed_${pctToSet}.png`);
+        }
+      } else {
+        console.log('Fuel slider is already at maximum. No refueling needed.');
+      }
+    } else {
+      console.warn('Fuel management container not found. Skipping refueling.');
+    }
+  } catch (error) {
+    console.error('Error in reFuelPlants:', error);
+    await captureScreenshot(page, 'reFuelPlants_error.png');
+  }
 
-//           // Optionally, wait for a confirmation element or message
-//           // await page.waitForTimeout(1000); // Adjust based on actual response time
-//         } else {
-//           console.error(`Failed to refuel ${fuelType} plants. Server responded with status: ${response.status}`);
-//           await captureScreenshot(page, `refuelOilPlants_failed_${pctToSet}.png`);
-//         }
-//       } else {
-//         console.log('Fuel slider is already at maximum. No refueling needed.');
-//       }
-//     } else {
-//       console.warn('Fuel management container not found. Skipping refueling.');
-//     }
-//   } catch (error) {
-//     console.error('Error in reFuelPlants:', error);
-//     await captureScreenshot(page, 'reFuelPlants_error.png');
-//   }
-
-//   return didRefuel;
-// }
+  return didRefuel;
+}

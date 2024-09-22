@@ -147,8 +147,6 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean>
           console.error(`Failed to refuel ${fuelType} plants. Server responded with status: ${response.status}`);
           await captureScreenshot(page, `refuelOilPlants_failed_${pctToSet}.png`);
         }
-      } else {
-        console.log('Fuel slider is already at maximum. No refueling needed.');
       }
     } else {
       console.warn('Fuel management container not found. Skipping refueling.');

@@ -41,6 +41,10 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     enabledPlants = await enableStoragesPlants(page, data);
   }
 
+  // if (enabledPlants.totalOutOfFuel > 0) {
+  //   https://energymanagergame.com/fuel-management.php?mode=do&pct=60&type=oil
+  // }
+
   if (decisions.reenableSolarPlants) {
     reenabledSolarPlants = await reEnableSolarPlants(page, data, decisions);
   }

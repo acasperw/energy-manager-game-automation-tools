@@ -3,6 +3,7 @@ import { GameSessionData, GridStorage, StorageInfo } from "../types/interface";
 import { BASE_URL } from "../config";
 import { Plant, ProductionData, UserData } from "../types/api";
 import * as cheerio from 'cheerio';
+import { parseValueToTonnes } from "../utils/helpers";
 
 export async function fetchGameSessionData(page: Page): Promise<GameSessionData> {
   // Define API endpoints
@@ -22,6 +23,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     co2Data,
     oilBuyPriceData,
     uraniumPriceData,
+    hydrogenExchangeResponse
   ] = await Promise.all([
     fetchApiData<UserData>(page, userDataEndpoint),
     fetchApiData<ProductionData>(page, productionDataEndpoint),
@@ -29,6 +31,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     fetchApiData<number[]>(page, co2DataEndpoint),
     fetchApiData<number[]>(page, oilBuyPriceDataEndpoint),
     fetchApiData<number[]>(page, uraniumPriceDataEndpoint),
+    postApiData<string>(page, hydrogenExchangeEndpoint),
   ]);
 
   // Get grid demand list
@@ -41,20 +44,22 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   // Process energy grids & storages
   const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
 
-  // Fetch hydrogen silo data
-  const hydrogenExchangeResponse = await postApiData<string>(page, hydrogenExchangeEndpoint);
+  // Hydrogen Silo data
   const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
 
   return {
     plants: plants,
     energyGrids,
-    hydrogenValue: hydrogenData.at(-1) ?? 0,
     emissionPerKwh: userData.userData.emissionPerKwh ?? 0,
     co2Value: co2Data.at(-1) ?? 0,
     oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
     uraniumPrice: uraniumPriceData.at(-1) ?? 0,
     userMoney: parseFloat(userData.userData.account),
-    hasHydrogenSiloSpace: hydrogenSiloHolding < hydrogenSiloCapacity,
+    hydrogen: {
+      hydrogenPrice: hydrogenData.at(-1) ?? 0,
+      hydrogenSiloHolding: hydrogenSiloHolding,
+      hydrogenSiloCapacity: hydrogenSiloCapacity,
+    },
   };
 }
 
@@ -152,21 +157,21 @@ function processEnergyGrids(
   return Array.from(gridMap.values());
 }
 
-async function fetchApiData<T>(page: Page, url: string): Promise<T> {
+export async function fetchApiData<T>(page: Page, url: string): Promise<T> {
   return await page.evaluate(async (url) => {
     const response = await fetch(url);
     return await response.json();
   }, url) as T;
 }
 
-async function postApiDataJson<T>(page: Page, url: string, data: any): Promise<T> {
+export async function postApiDataJson<T>(page: Page, url: string, data: any): Promise<T> {
   return await page.evaluate(async (url, data) => {
     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify(data), });
     return await response.json();
   }, url, data) as T;
 }
 
-async function postApiData<T>(page: Page, url: string): Promise<T> {
+export async function postApiData<T>(page: Page, url: string): Promise<T> {
   return await page.evaluate(async (url) => {
     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', } });
     return await response.text();
@@ -175,19 +180,25 @@ async function postApiData<T>(page: Page, url: string): Promise<T> {
 
 export function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hydrogenSiloCapacity: number } {
   const $ = cheerio.load(html);
-  const holdingText = $('.bg-white.h-100.p-2.rounded .text-info').first().text().trim();
-  const capacityText = $('.bg-white.h-100.p-2.rounded .text-secondary.s-text').filter((_, el) => $(el).text().includes('Capacity')).first().text().trim();
 
-  const holdingMatch = holdingText.match(/([\d,.]+)kg/);
+  // Extract Hydrogen Silo Holding
+  const holdingElement = $('.bg-white.h-100.p-2.rounded .text-info').first();
   let hydrogenSiloHolding = 0;
-  if (holdingMatch && holdingMatch[1]) {
-    hydrogenSiloHolding = parseFloat(holdingMatch[1].replace(/,/g, ''));
+  if (holdingElement.length) {
+    const holdingText = holdingElement.text().trim();
+    hydrogenSiloHolding = parseValueToTonnes(holdingText);
+  } else {
+    console.warn("Hydrogen silo holding element not found.");
   }
 
-  const capacityMatch = capacityText.match(/Capacity:\s*([\d,.]+)kg/);
+  // Extract Hydrogen Silo Capacity
+  const capacityElement = $('.bg-white.h-100.p-2.rounded .text-secondary.s-text').filter((_, el) => $(el).text().includes('Capacity')).first();
   let hydrogenSiloCapacity = 0;
-  if (capacityMatch && capacityMatch[1]) {
-    hydrogenSiloCapacity = parseFloat(capacityMatch[1].replace(/,/g, ''));
+  if (capacityElement.length) {
+    const capacityText = capacityElement.text().trim();
+    hydrogenSiloCapacity = parseValueToTonnes(capacityText);
+  } else {
+    console.warn("Hydrogen silo capacity element not found.");
   }
 
   return {

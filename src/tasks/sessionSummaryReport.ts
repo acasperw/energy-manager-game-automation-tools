@@ -11,7 +11,8 @@ export async function sessionSummaryReport(
   enabledPlants: RefuelEnableStoragesPlantsResult,
   reenabledSolarPlants: ReEnablePlantsResult,
   oilBought: number,
-  uraniumBought: number
+  uraniumBought: number,
+  storeHydrogen: boolean
 ) {
 
   if (energySalesInfo.processedGridsResults.length > 0) {
@@ -27,11 +28,14 @@ export async function sessionSummaryReport(
 
   if (decisions.sellHydrogen && hydrogenSalesTotal.sale > 0) {
     console.log('\nHydrogen:');
-    console.log(`Value was ${formatCurrency(data.hydrogenValue)} and was ${data.hydrogenValue > HYDROGEN_PRICE_THRESHOLD_MIN ? 'eligible' : 'not eligible'} for selling. (Threshold: ${formatCurrency(HYDROGEN_PRICE_THRESHOLD_MIN)})`);
+    console.log(`Value was ${formatCurrency(data.hydrogen.hydrogenPrice)} and was ${data.hydrogen.hydrogenPrice > HYDROGEN_PRICE_THRESHOLD_MIN ? 'eligible' : 'not eligible'} for selling. (Threshold: ${formatCurrency(HYDROGEN_PRICE_THRESHOLD_MIN)})`);
     if (decisions.sellHydrogen && hydrogenSalesTotal.sale > 0) {
       console.log(`Hydrogen sales total: ${formatCurrency(hydrogenSalesTotal.sale)}${hydrogenSalesTotal.includingSilo ? ' (including silo)' : ''}`);
     } else {
       console.log('No hydrogen sales were made.');
+    }
+    if (storeHydrogen) {
+      console.log('Stored hydrogen in silo.');
     }
   }
 

@@ -51,6 +51,7 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
 
   await page.click('#main-modal-container .opa-light.text-center.intro-disable');
   await page.waitForSelector('#main-modal-container', { hidden: true });
+  await hideSalesResultPopup(page);
 
   return {
     gridName: currentGrid.gridName,

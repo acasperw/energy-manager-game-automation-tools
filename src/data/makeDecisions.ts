@@ -3,13 +3,18 @@ import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESH
 import { filterGridsByStorageType, isGridChargeAboveThreshold } from "../utils/grid-utils";
 
 export function makeDecisions(data: GameSessionData): TaskDecisions {
-  let enableStoragesPlants = false;
   let sellHydrogen = false;
+  let sellHydrogenSilo = false;
   let sellEnergy = false;
-  let buyCo2Quotas = false;
+
   let reenableSolarPlants = false;
+  let enableStoragesPlants = false;
+
+  let buyCo2Quotas = false;
   let buyOil = false;
   let buyUranium = false;
+
+  let storeHydrogen = false;
 
   // Power grids (excluding p2x storages)
   const nonP2xGrids = filterGridsByStorageType(data.energyGrids, 'non-p2x');
@@ -18,10 +23,17 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   }
 
   // Hydrogen grids
-  if (data.hydrogenValue >= HYDROGEN_PRICE_THRESHOLD_MIN) {
+  if (data.hydrogen.hydrogenPrice >= HYDROGEN_PRICE_THRESHOLD_MIN) {
+
+    // Main hydrogen
     const p2xGrids = filterGridsByStorageType(data.energyGrids, 'p2x');
     if (p2xGrids.some(grid => isGridChargeAboveThreshold(grid, 'p2x', STORAGE_CHARGE_THRESHOLD_MIN))) {
       sellHydrogen = true;
+    }
+
+    // Silo hydrogen
+    if (data.hydrogen.hydrogenSiloHolding > 0) {
+      sellHydrogenSilo = true;
     }
   }
 
@@ -64,14 +76,20 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     buyUranium = true;
   }
 
+  if (data.hydrogen.hydrogenSiloHolding < data.hydrogen.hydrogenSiloCapacity) {
+    storeHydrogen = true;
+  }
+
   return {
     sellEnergy,
     sellHydrogen,
+    sellHydrogenSilo,
     enableStoragesPlants,
     reenableSolarPlants,
     solarPlantsToReenable,
     buyCo2Quotas,
     buyOil,
     buyUranium,
+    storeHydrogen
   };
 }

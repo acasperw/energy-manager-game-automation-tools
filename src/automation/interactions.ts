@@ -7,7 +7,7 @@ import { clickElement } from "./helpers";
 
 export async function ensureSidebarOpen(page: Page, tabName: tabName = 'storage') {
   try {
-    await delay(100);
+    await delay(200);
     await page.waitForSelector('#pane-close-helper');
     const isSidebarClosed = await page.evaluate(() => {
       const span = document.querySelector('#pane-close-helper span');

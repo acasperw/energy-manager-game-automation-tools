@@ -5,6 +5,8 @@ export type tabName = 'plants' | 'storage';
 export interface TaskDecisions {
   sellEnergy: boolean;
   sellHydrogen: boolean;
+  sellHydrogenSilo: boolean;
+
   enableStoragesPlants: boolean;
   reenableSolarPlants: boolean;
   solarPlantsToReenable: string[];
@@ -12,6 +14,8 @@ export interface TaskDecisions {
   buyCo2Quotas: boolean;
   buyOil: boolean;
   buyUranium: boolean;
+
+  storeHydrogen: boolean;
 }
 
 export interface StorageInfo {
@@ -47,8 +51,11 @@ export interface GameSessionData {
   uraniumPrice: number;
   userMoney: number;
 
-  hydrogenValue: number;
-  hasHydrogenSiloSpace: boolean;
+  hydrogen: {
+    hydrogenPrice: number;
+    hydrogenSiloHolding: number;
+    hydrogenSiloCapacity: number;
+  };
 }
 
 export interface EnergySalesProcess {

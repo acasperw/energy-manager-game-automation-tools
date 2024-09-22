@@ -3,10 +3,10 @@ import { clickElement } from "../automation/helpers";
 import { getSalesResultPopup } from "../automation/interactions";
 import { getNumericValue } from "../utils/browser-data-helpers";
 import { delay } from "../utils/helpers";
-import { HydrogenSalesInfo } from "../types/interface";
+import { GameSessionData, HydrogenSalesInfo, TaskDecisions } from "../types/interface";
 import { captureScreenshot } from "../automation/browser";
 
-export async function sellGridHydrogen(page: Page): Promise<HydrogenSalesInfo> {
+export async function sellGridHydrogen(page: Page, data: GameSessionData, decisions: TaskDecisions): Promise<HydrogenSalesInfo> {
   let totalSales = 0;
   let saleIncludesSilo = false;
   try {
@@ -18,19 +18,21 @@ export async function sellGridHydrogen(page: Page): Promise<HydrogenSalesInfo> {
     await delay(1000);
 
     // Sell main hydrogen
-    const hydrogenValue = await getNumericValue(page, '.total-hydrogen-value');
-    if (hydrogenValue > 0) {
-      await page.waitForSelector('#main-hydrogen-sell-btn');
-      await page.waitForFunction(() => {
-        const button = document.querySelector('#main-hydrogen-sell-btn');
-        return button &&
-          !button.hasAttribute('disabled') &&
-          !button.classList.contains('not-active');
-      });
-      await clickElement(page, '#main-hydrogen-sell-btn');
+    if (decisions.sellHydrogen) {
+      const hydrogenPrice = await getNumericValue(page, '.total-hydrogen-value');
+      if (hydrogenPrice > 0) {
+        await page.waitForSelector('#main-hydrogen-sell-btn');
+        await page.waitForFunction(() => {
+          const button = document.querySelector('#main-hydrogen-sell-btn');
+          return button &&
+            !button.hasAttribute('disabled') &&
+            !button.classList.contains('not-active');
+        });
+        await clickElement(page, '#main-hydrogen-sell-btn');
 
-      const salesTotal = await getSalesResultPopup(page);
-      totalSales += salesTotal;
+        const salesTotal = await getSalesResultPopup(page);
+        totalSales += salesTotal;
+      }
     }
 
     // Check for silo and sell if available

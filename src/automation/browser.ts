@@ -8,7 +8,7 @@ import { clickElement } from './helpers';
 export async function initializeBrowser(): Promise<{ browser: Browser; page: Page }> {
   const browser = await puppeteer.launch({
     headless: !!process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false', '--single-process', '--no-first-run', '--disable-accelerated-2d-canvas', '--disable-dev-shm-usage', '--no-zygote'],
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
   });
   const page = await browser.newPage();

@@ -12,7 +12,7 @@ export async function initializeBrowser(): Promise<{ browser: Browser; page: Pag
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
   });
   const page = await browser.newPage();
-  await page.setViewport({ width: 760, height: 900 });
+  await page.setViewport({ width: 767, height: 1200 });
   return { browser, page };
 }
 

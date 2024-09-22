@@ -1,10 +1,11 @@
 import { Page } from 'puppeteer';
 import { GameSessionData, ReEnablePlantsResult, TaskDecisions } from '../types/interface';
-import { ensureSidebarOpen, getEnergyOutputAmount, switchTab } from '../automation/interactions';
+import { ensureSidebarOpen, getEnergyOutputAmount } from '../automation/interactions';
 import { getSunrise, getSunset } from 'sunrise-sunset-js';
 import { delay } from '../utils/helpers';
 import { Plant } from '../types/api';
 import { clickElement, ifElementExists } from '../automation/helpers';
+import { captureScreenshot } from '../automation/browser';
 
 export async function reEnableSolarPlants(page: Page, data: GameSessionData, decisions: TaskDecisions): Promise<ReEnablePlantsResult> {
   let reEnablePlants = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
@@ -14,8 +15,7 @@ export async function reEnableSolarPlants(page: Page, data: GameSessionData, dec
     if (plantsToReenableIds.length === 0) {
       return reEnablePlants;
     }
-    await ensureSidebarOpen(page);
-    await switchTab(page, 'plants');
+    await ensureSidebarOpen(page, 'plants');
     await page.waitForSelector('#production-plants-container');
     const plantsMap = new Map<string, Plant>();
     data.plants.forEach(plant => { plantsMap.set(plant.plantId, plant); });
@@ -46,10 +46,11 @@ export async function reEnableSolarPlants(page: Page, data: GameSessionData, dec
       }
     }
     await delay(400);
-    reEnablePlants.kwEnergyAfter = await getEnergyOutputAmount(page) ?? 0;
-    return reEnablePlants;
   } catch (error) {
     console.error('Error in reEnableSolarPlants:', error);
+    captureScreenshot(page, 'reEnableSolarPlants.png');
+  } finally {
+    reEnablePlants.kwEnergyAfter = await getEnergyOutputAmount(page) ?? 0;
     return reEnablePlants;
   }
 }

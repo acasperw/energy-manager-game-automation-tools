@@ -3,7 +3,7 @@ import { GameSessionData } from "../types/interface";
 
 function calculateQuotasForCO2(co2Amount: number): number {
   const quotasPerGram = 1.65 * Math.pow(10, 8); // 1.65 * 10^8 quotas per gram
-  return Math.round(quotasPerGram * co2Amount); // Round to the nearest whole number
+  return Math.round(quotasPerGram * co2Amount) - 1000; // Round to the nearest whole number
 }
 
 export async function buyC02Quotas(page: Page, data: GameSessionData): Promise<number> {

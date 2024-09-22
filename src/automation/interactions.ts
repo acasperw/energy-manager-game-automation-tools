@@ -5,7 +5,7 @@ import { getNumericValue } from "../utils/browser-data-helpers";
 import { delay } from "../utils/helpers";
 import { clickElement } from "./helpers";
 
-export async function ensureSidebarOpen(page: Page) {
+export async function ensureSidebarOpen(page: Page, tabName: tabName = 'storage') {
   try {
     await delay(200);
     await page.waitForSelector('#pane-close-helper');
@@ -16,8 +16,9 @@ export async function ensureSidebarOpen(page: Page) {
     if (isSidebarClosed) {
       await page.click('#pane-close-helper');
       await page.waitForSelector('#pane-close-helper span.glyphicons-chevron-left');
+      await delay(300);
     }
-    await switchTab(page, 'storage');
+    await switchTab(page, tabName);
   } catch (error) {
     await captureScreenshot(page, 'error-sidebar.png');
     throw error;
@@ -29,7 +30,6 @@ export async function switchTab(page: Page, tabName: tabName) {
   if (!validTabs.includes(tabName)) {
     throw new Error(`Invalid tab name. Must be one of: ${validTabs.join(', ')}`);
   }
-
   const tabSelector = `#pane-${tabName}`;
   const isActive = await page.evaluate((selector) => {
     const tab = document.querySelector(selector);
@@ -40,6 +40,7 @@ export async function switchTab(page: Page, tabName: tabName) {
     await clickElement(page, tabSelector);
     await page.waitForFunction((selector) => document.querySelector(selector)?.classList.contains('pane-tabs-active'), { timeout: 5000 }, tabSelector);
   }
+  await delay(200);
 }
 
 export async function getSalesResultPopup(page: Page) {

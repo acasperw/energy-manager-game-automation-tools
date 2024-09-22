@@ -26,8 +26,7 @@ export async function refuelEnableStoragesPlants(
   let didRefuel = false;
 
   try {
-    await ensureSidebarOpen(page);
-    await switchTab(page, 'plants');
+    await ensureSidebarOpen(page, 'plants');
     await page.waitForSelector('#production-plants-container', { visible: true });
 
     didRefuel = await reFuelPlants(page, data);
@@ -107,6 +106,7 @@ export async function refuelEnableStoragesPlants(
  */
 async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean> {
   let didRefuel = false;
+  await switchTab(page, 'plants');
 
   try {
     // Check if the fuel management container exists
@@ -140,9 +140,6 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean>
         if (response.ok) {
           console.log(`Successfully refueled ${fuelType} plants to ${pctToSet}%`);
           didRefuel = true;
-
-          // Optionally, wait for a confirmation element or message
-          // await page.waitForTimeout(1000); // Adjust based on actual response time
         } else {
           console.error(`Failed to refuel ${fuelType} plants. Server responded with status: ${response.status}`);
           await captureScreenshot(page, `refuelOilPlants_failed_${pctToSet}.png`);
@@ -155,6 +152,5 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean>
     console.error('Error in reFuelPlants:', error);
     await captureScreenshot(page, 'reFuelPlants_error.png');
   }
-
   return didRefuel;
 }

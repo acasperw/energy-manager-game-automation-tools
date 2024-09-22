@@ -1,5 +1,5 @@
 import { scheduleJob } from 'node-schedule';
-import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, TaskDecisions } from './types/interface';
+import { EnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from './types/interface';
 import { Page } from 'puppeteer';
 import { initializeBrowser, loginToEnergyManager } from './automation/browser';
 import { fetchGameSessionData } from './data/collector';
@@ -15,8 +15,8 @@ import { buyOil } from './tasks/buyOil';
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page) {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
-  let enabledPlants = { totalEnabled: 0, totalSkipped: 0 };
-  let reenabledSolarPlants = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
+  let enabledPlants: EnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0 };
+  let reenabledSolarPlants: ReEnablePlantsResult = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   let co2QuotasBought = 0;
   let oilBought = 0;
   let uraniumBought = 0;

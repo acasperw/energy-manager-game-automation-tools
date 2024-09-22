@@ -1,5 +1,5 @@
 import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
-import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlants, TaskDecisions } from "../types/interface";
+import { EnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from "../types/interface";
 import { formatCurrency, formatEnergy } from "../utils/helpers";
 
 export async function sessionSummaryReport(
@@ -8,8 +8,8 @@ export async function sessionSummaryReport(
   energySalesInfo: EnergySalesProcess,
   hydrogenSalesTotal: HydrogenSalesInfo,
   co2QuotasBought: number,
-  enabledPlants: { totalEnabled: number, totalSkipped: number },
-  reenabledSolarPlants: ReEnablePlants,
+  enabledPlants: EnableStoragesPlantsResult,
+  reenabledSolarPlants: ReEnablePlantsResult,
   oilBought: number,
   uraniumBought: number
 ) {
@@ -64,7 +64,10 @@ export async function sessionSummaryReport(
     });
   }
   if (enabledPlants.totalEnabled > 0) {
-    console.log(`Enabled ${enabledPlants} plants${enabledPlants.totalSkipped > 0 ? ` and skipped ${enabledPlants.totalSkipped}` : ''}.`);
+    console.log(`Enabled ${enabledPlants.totalEnabled} plants${enabledPlants.totalSkipped > 0 ? ` and skipped ${enabledPlants.totalSkipped}` : ''}.`);
+    if (enabledPlants.totalOutOfFuel > 0) {
+      console.log(`Skipped ${enabledPlants.totalOutOfFuel} plants due to lack of fuel.`);
+    }
   }
   if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
     console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);

@@ -67,8 +67,14 @@ export interface HydrogenSalesInfo {
   includingSilo: boolean;
 }
 
-export interface ReEnablePlants {
+export interface ReEnablePlantsResult {
   enabledPlants: number;
   kwEnergyBefore: number;
   kwEnergyAfter: number;
+}
+
+export interface EnableStoragesPlantsResult {
+  totalEnabled: number;
+  totalSkipped: number;
+  totalOutOfFuel: number;
 }

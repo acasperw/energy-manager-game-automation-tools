@@ -1,13 +1,12 @@
 import { Page } from 'puppeteer';
-import { GameSessionData, ReEnablePlants, TaskDecisions } from '../types/interface';
-import { ensureSidebarOpen, switchTab } from '../automation/interactions';
+import { GameSessionData, ReEnablePlantsResult, TaskDecisions } from '../types/interface';
+import { ensureSidebarOpen, getEnergyOutputAmount, switchTab } from '../automation/interactions';
 import { getSunrise, getSunset } from 'sunrise-sunset-js';
 import { delay } from '../utils/helpers';
 import { Plant } from '../types/api';
 import { clickElement, ifElementExists } from '../automation/helpers';
-import { getEnergyOutputAmount } from '../data/collector';
 
-export async function reEnableSolarPlants(page: Page, data: GameSessionData, decisions: TaskDecisions): Promise<ReEnablePlants> {
+export async function reEnableSolarPlants(page: Page, data: GameSessionData, decisions: TaskDecisions): Promise<ReEnablePlantsResult> {
   let reEnablePlants = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   try {
     reEnablePlants.kwEnergyBefore = await getEnergyOutputAmount(page) ?? 0;

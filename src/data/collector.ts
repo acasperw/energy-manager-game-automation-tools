@@ -125,15 +125,12 @@ function processEnergyGrids(
     } else {
       const existingGrid = gridMap.get(gridId)!;
       existingGrid.storages.push(storageInfo);
-
       if (plantsConnected > 0) {
         existingGrid.totalCurrentCharge += currentCharge;
         existingGrid.totalCapacity += capacity;
       }
       existingGrid.isLowDemand = existingGrid.isLowDemand || (demand < 10000 || demand < existingGrid.totalCurrentCharge);
-      existingGrid.chargePercentage = existingGrid.totalCapacity > 0
-        ? (existingGrid.totalCurrentCharge / existingGrid.totalCapacity) * 100
-        : 0;
+      existingGrid.chargePercentage = existingGrid.totalCapacity > 0 ? (existingGrid.totalCurrentCharge / existingGrid.totalCapacity) * 100 : 0;
     }
   }
 
@@ -158,17 +155,4 @@ async function postApiData<T>(page: Page, url: string, data: any): Promise<T> {
     });
     return await response.json();
   }, url, data) as T;
-}
-
-export async function getEnergyOutputAmount(page: Page): Promise<number | null> {
-  try {
-    const outputKw = await page.$eval('#headerOutput', el => el.getAttribute('output-kw'));
-    if (!outputKw) {
-      throw new Error('Output KW attribute not found');
-    }
-    return parseFloat(outputKw);
-  } catch (error) {
-    console.error('Error getting energy output amount:', error);
-    return null;
-  }
 }

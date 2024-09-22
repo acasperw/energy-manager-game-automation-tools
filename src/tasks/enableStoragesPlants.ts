@@ -113,8 +113,15 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRef
   await switchTab(page, 'plants');
 
   try {
-    // Check if the fuel management container exists
-    if (await ifElementExists(page, '#fuel-management-container')) {
+    // Check if the fuel management container exists and is not hidden
+    const fuelManagementExists = await ifElementExists(page, "#fuel-management-container");
+    let isHidden = false;
+
+    if (fuelManagementExists) {
+      isHidden = await page.$eval("#fuel-management-container", (el) => el.classList.contains("hidden"));
+    }
+
+    if (fuelManagementExists && !isHidden) {
       await page.waitForSelector('#fuel-management-main');
       await clickElement(page, '#fuel-management');
       await page.waitForFunction(() => {

@@ -17,6 +17,6 @@ export const HYDROGEN_PRICE_THRESHOLD_MIN = 89;
 
 export const pctOfMaxPrice_other_grid_THRESHOLD_MIN = 70;
 
-export const CO2_PRICE_THRESHOLD_MAX = 20;
+export const CO2_PRICE_THRESHOLD_MAX = 21;
 export const OIL_PRICE_THRESHOLD_MAX = 2.5;
 export const URANIUM_PRICE_THRESHOLD_MAX = 5000;

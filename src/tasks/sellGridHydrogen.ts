@@ -42,7 +42,7 @@ export async function sellGridHydrogen(page: Page): Promise<HydrogenSalesInfo> {
         return siloButton && !siloButton.classList.contains('not-active');
       });
       if (siloValue > 0 && siloButtonActive) {
-        await clickElement(page, '#main-hydrogen-sell-btn:nth-of-type(2)');
+        await siloButtons[1].click();
         totalSales += siloValue;
         saleIncludesSilo = true;
       }

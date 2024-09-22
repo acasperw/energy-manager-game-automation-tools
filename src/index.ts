@@ -26,7 +26,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
 }> {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
-  let enabledPlants: RefuelEnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0, didRefuel: false };
+  let enabledPlants: RefuelEnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0, didRefuel: false, pctRefueled: 0 };
   let reenabledSolarPlants: ReEnablePlantsResult = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   let co2QuotasBought = 0;
   let oilBought = 0;
@@ -99,7 +99,7 @@ export async function mainTask() {
     let results = await executeTasks(decisions, data, page);
 
     // Check if hydrogen silo sale occurred
-    if (results.hydrogenSalesTotal.includingSilo) {
+    if (results.hydrogenSalesTotal.includingSilo || results.storeHydrogen) {
       console.log('\nHydrogen silo sale detected. Waiting for 2 mins before re-executing tasks.\n');
       await delay(120000);
       data = await fetchGameSessionData(page);

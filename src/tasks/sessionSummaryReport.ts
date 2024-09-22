@@ -69,7 +69,7 @@ export async function sessionSummaryReport(
   if (enabledPlants.totalEnabled > 0) {
     console.log(`Enabled ${enabledPlants.totalEnabled} plants${enabledPlants.totalSkipped > 0 ? ` and skipped ${enabledPlants.totalSkipped}` : ''}.`);
     if (enabledPlants.didRefuel) {
-      console.log(`Refueled plants.`);
+      console.log(`Successfully refueled plants to ${enabledPlants.pctRefueled}%`);
     }
     if (enabledPlants.totalOutOfFuel > 0) {
       console.log(`Skipped ${enabledPlants.totalOutOfFuel} plants due to lack of fuel.`);

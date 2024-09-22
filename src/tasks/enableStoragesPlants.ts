@@ -24,12 +24,15 @@ export async function refuelEnableStoragesPlants(
   let totalSkipped = 0;
   let totalOutOfFuel = 0;
   let didRefuel = false;
+  let pctRefueled = 0;
 
   try {
     await ensureSidebarOpen(page, 'plants');
     await page.waitForSelector('#production-plants-container', { visible: true });
 
-    didRefuel = await reFuelPlants(page, data);
+    const refuelResult = await reFuelPlants(page, data);
+    didRefuel = refuelResult.didRefuel;
+    pctRefueled = refuelResult.pctRefueled;
 
     // Filter plants that are offline
     const offlinePlants: Plant[] = data.plants.filter(plant => !plant.online);
@@ -90,11 +93,11 @@ export async function refuelEnableStoragesPlants(
       );
     }
 
-    return { totalEnabled, totalSkipped, totalOutOfFuel, didRefuel };
+    return { totalEnabled, totalSkipped, totalOutOfFuel, didRefuel, pctRefueled };
   } catch (error) {
     console.error('Error in refuelEnableStoragesPlants:', error);
     await captureScreenshot(page, 'refuelEnableStoragesPlants_error.png');
-    return { totalEnabled, totalSkipped, totalOutOfFuel, didRefuel };
+    return { totalEnabled, totalSkipped, totalOutOfFuel, didRefuel, pctRefueled };
   }
 }
 
@@ -104,8 +107,9 @@ export async function refuelEnableStoragesPlants(
  * @param data - The current game session data.
  * @returns A boolean indicating whether refueling was performed.
  */
-async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean> {
+async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRefuel: boolean, pctRefueled: number }> {
   let didRefuel = false;
+  let pctRefueled = 0;
   await switchTab(page, 'plants');
 
   try {
@@ -135,7 +139,7 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean>
         );
 
         if (response.ok) {
-          console.log(`Successfully refueled ${fuelType} plants to ${pctToSet}%`);
+          pctRefueled = pctToSet;
           didRefuel = true;
         } else {
           console.error(`Failed to refuel ${fuelType} plants. Server responded with status: ${response.status}`);
@@ -149,5 +153,5 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<boolean>
     console.error('Error in reFuelPlants:', error);
     await captureScreenshot(page, 'reFuelPlants_error.png');
   }
-  return didRefuel;
+  return { didRefuel, pctRefueled };
 }

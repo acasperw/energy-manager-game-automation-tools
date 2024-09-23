@@ -29,6 +29,8 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
   }
 
   // Testing new way of api selling
+  const actualBestGrid = eligibleGrids[0];
+  const actualBestGridSellValue = (actualBestGrid.mwhValue * currentGrid.totalCurrentCharge / 1000) * 0.9;
   // const sellDecision = await sellToBestPossibleGrid(page, currentGrid, eligibleGrids);
 
   // Continue with selling
@@ -56,12 +58,15 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
   await page.waitForSelector('#main-modal-container', { hidden: true });
   await hideSalesResultPopup(page);
 
+  const soldToGridName = sellDecision.target === 'alternative' ? sellDecision.gridName : (sellDecision.action === 'sell' ? currentGrid.gridName : null);
+
   return {
     gridName: currentGrid.gridName,
     sale: sellDecision.sale,
     additionalProfit: sellDecision.profit,
+    theoreticalActualBestGridSale: actualBestGrid.gridName !== soldToGridName ? actualBestGridSellValue : undefined,
     action: sellDecision.action === 'keep' ? 'keep' : 'sold',
-    soldTo: sellDecision.target === 'alternative' ? sellDecision.gridName : (sellDecision.action === 'sell' ? currentGrid.gridName : null),
+    soldTo: soldToGridName,
     highUpcomingValue: false
   };
 }

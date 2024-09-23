@@ -67,6 +67,7 @@ export interface EnergySalesInfo {
   gridName: string;
   sale: number;
   additionalProfit: number;
+  theoreticalActualBestGridSale?: number;
   action: 'keep' | 'sold' | 'skipped';
   soldTo?: string | null;
   highUpcomingValue?: boolean;

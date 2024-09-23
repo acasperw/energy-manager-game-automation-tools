@@ -23,6 +23,9 @@ export async function sessionSummaryReport(
     console.log(`Processed ${energySalesInfo.processedGrids} grids and sold ${soldGrids.length} for a total of ${formatCurrency(totalSales)}${totalAdditionalProfit > 0 ? ` (${formatCurrency(totalAdditionalProfit)} additional profit)` : ''}.`);
     energySalesInfo.processedGridsResults.forEach(grid => {
       console.log(`Grid ${grid.gridName}: ${grid.action === 'sold' ? `Sold ${grid.soldTo ? `to ${grid.soldTo}` : ''} for ${formatCurrency(grid.sale)} (${formatCurrency(grid.additionalProfit)} additional profit)` : `Kept ${grid.highUpcomingValue ? 'due to higher upcoming value' : 'as it was not profitable'}`}`);
+      if (grid.theoreticalActualBestGridSale) {
+        console.log(`FYI, You could have made an extra profit from selling to actual best grid: ${formatCurrency(grid.theoreticalActualBestGridSale - grid.sale)} for a total of ${formatCurrency(grid.theoreticalActualBestGridSale)}`);
+      }
     });
   }
 

@@ -157,8 +157,6 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRef
           await captureScreenshot(page, `refuelOilPlants_failed_${pctToSet}.png`);
         }
       }
-    } else {
-      console.warn('Fuel management container not found. Skipping refueling.');
     }
   } catch (error) {
     console.error('Error in reFuelPlants:', error);

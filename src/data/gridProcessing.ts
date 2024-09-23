@@ -22,11 +22,14 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
 
   // Check for upcoming high value
   const upcomingMwhValue = await extractUpcomingValue(page);
-  const maxTopMwhValue = Math.max(...eligibleGrids.map(g => g.mwhValue * 0.85)); // Apply 10% fee and buffer
+  const maxTopMwhValue = Math.max(...eligibleGrids.map(g => g.mwhValue * 0.88)); // Apply 10% fee and buffer
   if (upcomingMwhValue && upcomingMwhValue > maxTopMwhValue && currentGrid.mwhValue < upcomingMwhValue) {
     await page.click('#details-pane .intro-disable.opa');
     return { gridName: currentGrid.gridName, sale: 0, additionalProfit: 0, action: 'keep', highUpcomingValue: true };
   }
+
+  // Testing new way of api selling
+  // const sellDecision = await sellToBestPossibleGrid(page, currentGrid, eligibleGrids);
 
   // Continue with selling
   await clickDollarSignAndWaitForModal(page);
@@ -231,3 +234,37 @@ function determineSellAction(currentGrid: GridStorage, bestAlternative: BestSell
     sale: 0
   };
 }
+
+// --- WARNING ---
+// This could possibly result in selling to a grid further away then actually allowed
+// async function sellToBestPossibleGrid(page: Page, currentGrid: GridStorage, eligibleGrids: GridStorage[]): Promise<{ action: string; target: string; gridName: string; profit: number; sale: number; }> {
+
+//   const bestAlternativeGrid = eligibleGrids[0];
+//   const bestAlternativeGridValue = bestAlternativeGrid.mwhValue * currentGrid.totalCurrentCharge / 1000;
+
+//   const currentGridSellValue = (currentGrid.mwhValue * currentGrid.totalCurrentCharge) / 1000;
+
+//   const response = await page.evaluate(async (currentGrid, eligibleGrids) => {
+//     const url = `/power-exchange-sell.php?grid=${currentGrid.gridId}&mode=details&gridTarget=${eligibleGrids[0].gridId}`;
+//     const fetchResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, });
+//     return {
+//       status: fetchResponse.status,
+//       ok: fetchResponse.ok,
+//     };
+//   }, currentGrid, eligibleGrids);
+
+//   if (response.ok) {
+//     console.log('Sold to best grid');
+//   } else {
+//     console.log(`Failed to sell to best grid. Server responded with status: ${response.status}`);
+//   }
+
+//   return {
+//     action: 'sell',
+//     target: 'alternative',
+//     gridName: bestAlternativeGrid.gridName,
+//     profit: bestAlternativeGridValue - currentGridSellValue,
+//     sale: bestAlternativeGridValue,
+//   };
+
+// }

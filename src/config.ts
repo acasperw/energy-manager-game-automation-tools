@@ -15,7 +15,7 @@ export const SCREENSHOTS_DIR = 'screenshots';
 export const STORAGE_CHARGE_THRESHOLD_MIN = 80;
 export const HYDROGEN_PRICE_THRESHOLD_MIN = 89;
 
-export const pctOfMaxPrice_other_grid_THRESHOLD_MIN = 70;
+export const pctOfMaxPrice_other_grid_THRESHOLD_MIN = 75;
 
 export const CO2_PRICE_THRESHOLD_MAX = 21;
 export const OIL_PRICE_THRESHOLD_MAX = 2.5;

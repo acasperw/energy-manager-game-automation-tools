@@ -113,6 +113,10 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRef
   await switchTab(page, 'plants');
 
   try {
+
+    // We only can refuel oil plants that are offline
+    const offlineOilPlants = data.plants.filter(plant => plant.plantType === 'fossil').some(plant => plant.online === 0);
+
     // Check if the fuel management container exists and is not hidden
     const fuelManagementExists = await ifElementExists(page, "#fuel-management-container");
     let isHidden = false;
@@ -121,7 +125,7 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRef
       isHidden = await page.$eval("#fuel-management-container", (el) => el.classList.contains("hidden"));
     }
 
-    if (fuelManagementExists && !isHidden) {
+    if (fuelManagementExists && !isHidden && offlineOilPlants) {
       await page.waitForSelector('#fuel-management-main');
       await clickElement(page, '#fuel-management');
       await page.waitForFunction(() => {

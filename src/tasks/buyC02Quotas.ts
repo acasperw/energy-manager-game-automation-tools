@@ -11,7 +11,8 @@ import { getSliderValuesFromString } from "../utils/browser-data-helpers";
 async function getCo2QuotasToBuy(page: Page): Promise<number> {
   const response: string = await postApiData(page, '/co2.php');
   const { min, max, value } = getSliderValuesFromString(response);
-  return max;
+  const roundedMax = max >= 0 ? Math.floor(max / 10) * 10 : Math.ceil(max / 10) * 10;
+  return roundedMax;
 }
 
 export async function buyC02Quotas(page: Page, data: GameSessionData): Promise<number> {

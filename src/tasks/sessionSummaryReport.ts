@@ -30,7 +30,7 @@ export async function sessionSummaryReport(
     console.log('\nHydrogen:');
     console.log(`Value was ${formatCurrency(data.hydrogen.hydrogenPrice)} and was ${data.hydrogen.hydrogenPrice > HYDROGEN_PRICE_THRESHOLD_MIN ? 'eligible' : 'not eligible'} for selling. (Threshold: ${formatCurrency(HYDROGEN_PRICE_THRESHOLD_MIN)})`);
     if (decisions.sellHydrogen && hydrogenSalesTotal.sale > 0) {
-      console.log(`Hydrogen sales total: ${formatCurrency(hydrogenSalesTotal.sale)}${hydrogenSalesTotal.includingSilo ? ' (including silo)' : ''}`);
+      console.log(`Hydrogen sales total: ${formatCurrency(hydrogenSalesTotal.sale)}${hydrogenSalesTotal.includingSilo ? ' (including from silo)' : ''}`);
     } else {
       console.log('No hydrogen sales were made.');
     }
@@ -42,7 +42,7 @@ export async function sessionSummaryReport(
   if (decisions.buyCo2Quotas && co2QuotasBought > 0) {
     console.log('\nCO2 Quotas:');
     if (decisions.buyCo2Quotas && co2QuotasBought > 0) {
-      console.log(`CO2 quotas bought for ${formatCurrency(data.co2Value)} (Threshold: ${formatCurrency(CO2_PRICE_THRESHOLD_MAX)}): ${co2QuotasBought}`);
+      console.log(`CO2 quotas bought for ${formatCurrency(data.co2Value)} (Threshold: ${formatCurrency(CO2_PRICE_THRESHOLD_MAX)}): ${co2QuotasBought.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`);
     } else {
       console.log('No CO2 quotas were bought.');
     }
@@ -50,7 +50,7 @@ export async function sessionSummaryReport(
 
   if (decisions.buyOil && oilBought > 0) {
     console.log('\nOil:');
-    console.log(`Oil bought for ${formatCurrency(data.oilBuyPrice)} (Threshold: ${formatCurrency(OIL_PRICE_THRESHOLD_MAX)}): ${oilBought}`);
+    console.log(`Oil bought for ${formatCurrency(data.oilBuyPrice)} (Threshold: ${formatCurrency(OIL_PRICE_THRESHOLD_MAX)}): ${oilBought.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`);
   }
 
   const highWearPlants = data.plants.filter(plant => plant.wear! > 80);

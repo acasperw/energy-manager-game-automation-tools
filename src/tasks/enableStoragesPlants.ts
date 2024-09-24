@@ -131,7 +131,7 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRef
 
       const { min, max, value } = await getSliderValues(page);
 
-      if (value < max) {
+      if (value && value < max) {
         const pctToSet = max; // Set to maximum percentage
         const fuelType = 'oil';
 

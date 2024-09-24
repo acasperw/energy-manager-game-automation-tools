@@ -61,7 +61,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     }
   }
 
-  // Co2
+  // Buy Co2 quotas
   if (data.co2Value < CO2_PRICE_THRESHOLD_MAX && data.emissionPerKwh > 1) {
     buyCo2Quotas = true;
   }

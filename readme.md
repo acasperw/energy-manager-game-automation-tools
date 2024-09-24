@@ -29,10 +29,14 @@ then
 
 This will start an hourly scheduled task runner that automates 
 
-- Energy Sales
+- Energy Sales grid sales, including selling to best available non low-demand grids 
 - Co2 Quotas buying
-- Hydrogen Sales
-- Offline plant enabling
+- Hydrogen Sales (including from silo)
+- Hydrogen silo storage 
+- Offline plant enabling 
+- Oil buying
+- Oil plant refuling
+- Solar plants re-enebeling when is daylight
 
 ## License
 This project is licensed under the ISC License, but please let me know if you use it, id love to know.

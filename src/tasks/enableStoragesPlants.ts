@@ -46,9 +46,15 @@ export async function refuelEnableStoragesPlants(
       await Promise.all(batchSelectors.map(async (selector, index) => {
         const plant = batchPlants[index];
         try {
+          const grid = data.energyGrids.find(grid => grid.storages.some(storage => storage.id === plant.storageId.toString()));
+          if (!grid || grid.discharging) {
+            totalSkipped++;
+            return;
+          }
+
           const exists = await page.$(selector);
           if (!exists) {
-            console.warn(`Toggle selector not found for plant ID: ${plant.plantId}`);
+            await captureScreenshot(page, `toggle_not_found_plant_${plant.plantId}.png`);
             totalSkipped++;
             return;
           }
@@ -62,16 +68,6 @@ export async function refuelEnableStoragesPlants(
             // Plant is either discharging or out of fuel
             totalSkipped++;
             totalOutOfFuel++;
-            return;
-          }
-
-          const grid = data.energyGrids.find(grid =>
-            grid.storages.some(storage => storage.id === plant.storageId.toString())
-          );
-
-          if (!grid) {
-            console.warn(`Grid not found for plant ID: ${plant.plantId}`);
-            totalSkipped++;
             return;
           }
 
@@ -89,8 +85,7 @@ export async function refuelEnableStoragesPlants(
           await captureScreenshot(page, `refuelEnableStoragesPlants_error_plant_${plant.plantId}.png`);
           totalSkipped++;
         }
-      })
-      );
+      }));
     }
 
     return { totalEnabled, totalSkipped, totalOutOfFuel, didRefuel, pctRefueled };

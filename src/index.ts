@@ -26,7 +26,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
 }> {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
-  let enabledPlants: RefuelEnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0, didRefuel: false, pctRefueled: 0 };
+  let enabledPlants: RefuelEnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0, didRefuel: false, pctRefueled: 0, totalDisabled: 0 };
   let reenabledSolarPlants: ReEnablePlantsResult = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   let co2QuotasBought = 0;
   let oilBought = 0;

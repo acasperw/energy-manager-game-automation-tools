@@ -89,4 +89,5 @@ export interface RefuelEnableStoragesPlantsResult {
   totalOutOfFuel: number;
   didRefuel: boolean;
   pctRefueled: number;
+  totalDisabled: number;
 }

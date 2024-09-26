@@ -75,6 +75,9 @@ export async function sessionSummaryReport(
       console.log(`Skipped ${enabledPlants.totalOutOfFuel} plants due to lack of fuel.`);
     }
   }
+  if (enabledPlants.totalDisabled > 0) {
+    console.log(`Disabled ${enabledPlants.totalDisabled} plants.`);
+  }
   if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
     console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
     console.log(`Energy output: ${formatEnergy(reenabledSolarPlants.kwEnergyBefore)} -> ${formatEnergy(reenabledSolarPlants.kwEnergyAfter)}`);

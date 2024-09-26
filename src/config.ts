@@ -20,3 +20,5 @@ export const pctOfMaxPrice_other_grid_THRESHOLD_MIN = 80; // Percentage of max p
 export const CO2_PRICE_THRESHOLD_MAX = 18; // Maximum price to buy CO2 Quotas at
 export const OIL_PRICE_THRESHOLD_MAX = 2; // Maximum price to buy oil at
 export const URANIUM_PRICE_THRESHOLD_MAX = 5000; // Maximum price to buy uranium at
+
+export const ENHANCED_REPORTING = false;

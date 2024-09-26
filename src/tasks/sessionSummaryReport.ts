@@ -1,5 +1,6 @@
-import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
 import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from "../types/interface";
+import { displayAverageFactors, extractFactorsPerGrid, updateFactorsSummary } from "../utils/data-storage";
 import { formatCurrency, formatEnergy } from "../utils/helpers";
 
 export async function sessionSummaryReport(
@@ -14,6 +15,10 @@ export async function sessionSummaryReport(
   uraniumBought: number,
   storeHydrogen: boolean
 ) {
+
+  // Save plant factors to file
+  const factorsPerGrid: Record<string, Record<string, number>> = extractFactorsPerGrid(data);
+  await updateFactorsSummary(factorsPerGrid);
 
   if (energySalesInfo.processedGridsResults.length > 0) {
     console.log('\nEnergy Sales:');
@@ -84,4 +89,22 @@ export async function sessionSummaryReport(
   }
   console.log('\n');
 
+  if (ENHANCED_REPORTING) {
+
+    // Top storage capacities
+    const topStorages = data.energyGrids.filter(grid => grid.storages.some(storage => storage.plantsConnected > 0)).map(grid => {
+      return {
+        gridName: grid.gridName,
+        totalCapacity: grid.totalCapacity
+      };
+    }).sort((a, b) => b.totalCapacity - a.totalCapacity);
+    console.log('Top Storage Capacities:');
+    topStorages.forEach(storage => {
+      console.log(`${storage.gridName}: ${formatEnergy(storage.totalCapacity)}`);
+    });
+
+    await displayAverageFactors('cloudCover');
+  }
+
 }
+

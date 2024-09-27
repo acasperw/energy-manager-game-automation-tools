@@ -104,6 +104,10 @@ export async function sessionSummaryReport(
     });
 
     await displayAverageFactors('cloudCover');
+
+    await displayAverageFactors('output');
+
+    await displayAverageFactors('windspeed');
   }
 
 }

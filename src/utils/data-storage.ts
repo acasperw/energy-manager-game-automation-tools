@@ -129,25 +129,50 @@ export async function displayAverageFactors(factorName?: string): Promise<void> 
 }
 
 
+/**
+ * Extracts multiple factors per grid from the fetched user and production data.
+ * Ensures that cloudCover and windspeed are added only once per grid per run.
+ * Aggregates output across all plants within the same grid.
+ *
+ * @param data - The game session data containing plants and energy grids.
+ * @returns An object mapping grid IDs to their current factors.
+ */
 export function extractFactorsPerGrid(data: GameSessionData): Record<string, Record<string, number>> {
   const factorsData: Record<string, Record<string, number>> = {};
 
-  data.plants.forEach(plant => {
-    const storageId = plant.storageId.toString();
-    const gridId = data.energyGrids.find(grid => grid.storages.some(storage => storage.id === storageId))?.gridName!;
+  // Create a mapping from storageId (string) to gridName for quick lookup
+  const storageIdToGridName: Record<string, string> = {};
 
-    if (!factorsData[gridId]) {
-      factorsData[gridId] = {};
+  data.energyGrids.forEach(grid => {
+    grid.storages.forEach(storage => {
+      storageIdToGridName[storage.id] = grid.gridName;
+    });
+  });
+
+  data.plants.forEach(plant => {
+    const storageId = plant.storageId.toString(); // Ensure storageId is a string
+    const gridName = storageIdToGridName[storageId];
+
+    if (!gridName) {
+      console.warn(`No grid found for storage ID: ${storageId}`);
+      return; // Skip plants without a valid grid association
     }
 
-    // Extract and accumulate factors. Adjust the keys based on actual API response.
-    const cloudCover = plant.cloudcover || 0; // Assuming 'cloudcover' exists in plant data
-    const windspeed = plant.windspeed || 0;   // Assuming 'windspeed' exists
-    const output = plant.output || 0;         // Assuming 'output' exists
+    if (!factorsData[gridName]) {
+      factorsData[gridName] = {};
+    }
 
-    factorsData[gridId]['cloudCover'] = (factorsData[gridId]['cloudCover'] || 0) + cloudCover;
-    factorsData[gridId]['windspeed'] = (factorsData[gridId]['windspeed'] || 0) + windspeed;
-    factorsData[gridId]['output'] = (factorsData[gridId]['output'] || 0) + output;
+    // Add cloudCover and windspeed once per grid
+    if (!factorsData[gridName]['cloudCover']) {
+      factorsData[gridName]['cloudCover'] = plant.cloudcover || 0;
+    }
+
+    if (!factorsData[gridName]['windspeed']) {
+      factorsData[gridName]['windspeed'] = plant.windspeed || 0;
+    }
+
+    // Aggregate output across all plants within the grid
+    factorsData[gridName]['output'] = (factorsData[gridName]['output'] || 0) + (plant.output || 0);
   });
 
   return factorsData;

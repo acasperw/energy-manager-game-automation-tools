@@ -42,3 +42,30 @@ export const parseValueToTonnes = (text: string): number => {
   }
   return value;
 };
+
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries: number = 3,
+  delayMs: number = 120000,
+  onError?: (error: Error, attempt: number) => void
+): Promise<T> {
+  let lastError: Error;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.error(`Attempt ${attempt} failed:`, lastError);
+
+      if (onError) {
+        onError(lastError, attempt);
+      }
+
+      if (attempt < retries) {
+        console.log(`Waiting for ${delayMs / 60000} minutes before retrying...`);
+        await delay(delayMs);
+      }
+    }
+  }
+  throw lastError!;
+}

@@ -1,7 +1,7 @@
-import { scheduleJob } from 'node-schedule';
+import { gracefulShutdown, scheduleJob } from 'node-schedule';
 import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from './types/interface';
 import { Page } from 'puppeteer';
-import { initializeBrowser, loginToEnergyManager } from './automation/browser';
+import { closeBrowser, initializeBrowser, loginToEnergyManager } from './automation/browser';
 import { fetchGameSessionData } from './data/collector';
 import { makeDecisions } from './data/makeDecisions';
 import { sellGridEnergy } from './tasks/sellGridEnergy';
@@ -10,29 +10,9 @@ import { sessionSummaryReport } from './tasks/sessionSummaryReport';
 import { buyC02Quotas } from './tasks/buyC02Quotas';
 import { reEnableSolarPlants } from './tasks/reEnableSolarPlants';
 import { buyOil } from './tasks/buyOil';
-import { delay } from './utils/helpers';
+import { delay, withRetry } from './utils/helpers';
 import { refuelEnableStoragesPlants } from './tasks/enableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
-
-async function withRetry<T>(fn: () => Promise<T>, retries: number = 3, delayMs: number = 120000): Promise<T> {
-  let attempt = 0;
-  while (attempt < retries) {
-    try {
-      return await fn();
-    } catch (error) {
-      attempt++;
-      console.error(`Attempt ${attempt} failed:`, error);
-      if (attempt < retries) {
-        console.log(`Waiting for ${delayMs / 60000} minutes before retrying...`);
-        await delay(delayMs);
-      } else {
-        console.error('Max retry attempts reached. Throwing error.');
-        throw error;
-      }
-    }
-  }
-  throw new Error('withRetry: Unexpected execution path');
-}
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page): Promise<{
   energySalesInfo: EnergySalesProcess,
@@ -112,7 +92,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
 export async function mainTask() {
   await withRetry(async () => {
     console.time('Session');
-    const { browser, page } = await initializeBrowser();
+    const { page } = await initializeBrowser();
     try {
       await loginToEnergyManager(page);
       let data = await fetchGameSessionData(page);
@@ -128,7 +108,7 @@ export async function mainTask() {
         await executeTasks(decisions, data, page);
       }
     } finally {
-      await browser.close();
+      await closeBrowser();
       console.timeEnd('Session');
     }
   }, 2, 120000);
@@ -141,5 +121,28 @@ function startScheduler() {
     mainTask().catch(error => { console.error('Failed to execute mainTask after retries:', error); });
   });
 }
+
+async function mainGracefulShutdown() {
+  console.log('Initiating graceful shutdown...');
+  try {
+    await gracefulShutdown();
+    await closeBrowser();
+  } catch (error) {
+    console.error('Error during graceful shutdown:', error);
+  }
+}
+
+// Handle termination signals
+process.on('SIGINT', async function () {
+  console.log('SIGINT received.');
+  await mainGracefulShutdown();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async function () {
+  console.log('SIGTERM received.');
+  await mainGracefulShutdown();
+  process.exit(0);
+});
 
 startScheduler();

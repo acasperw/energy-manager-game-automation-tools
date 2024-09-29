@@ -5,14 +5,16 @@ import path from 'path';
 import { delay } from '../utils/helpers';
 import { clickElement } from './helpers';
 
+let browser: Browser | null = null;
+
 export async function initializeBrowser(): Promise<{ browser: Browser; page: Page }> {
-  const browser = await puppeteer.launch({
+  browser = await puppeteer.launch({
     headless: !!process.env.PUPPETEER_EXECUTABLE_PATH,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false', '--single-process', '--no-first-run', '--disable-accelerated-2d-canvas', '--disable-dev-shm-usage', '--no-zygote'],
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    defaultViewport: { width: 767, height: 960 },
   });
   const page = await browser.newPage();
-  await page.setViewport({ width: 767, height: 960 });
   return { browser, page };
 }
 
@@ -64,4 +66,11 @@ export async function captureScreenshot(page: Page, filename: string): Promise<v
   console.log(`Capturing screenshot: ${screenshotPath}`);
   await fs.mkdir(screenshotDir, { recursive: true });
   await page.screenshot({ path: screenshotPath, fullPage: true });
+}
+
+export async function closeBrowser(): Promise<void> {
+  if (browser) {
+    await browser.close();
+    browser = null;
+  }
 }

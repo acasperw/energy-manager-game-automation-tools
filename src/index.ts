@@ -14,6 +14,26 @@ import { delay } from './utils/helpers';
 import { refuelEnableStoragesPlants } from './tasks/enableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
 
+async function withRetry<T>(fn: () => Promise<T>, retries: number = 3, delayMs: number = 120000): Promise<T> {
+  let attempt = 0;
+  while (attempt < retries) {
+    try {
+      return await fn();
+    } catch (error) {
+      attempt++;
+      console.error(`Attempt ${attempt} failed:`, error);
+      if (attempt < retries) {
+        console.log(`Waiting for ${delayMs / 60000} minutes before retrying...`);
+        await delay(delayMs);
+      } else {
+        console.error('Max retry attempts reached. Throwing error.');
+        throw error;
+      }
+    }
+  }
+  throw new Error('withRetry: Unexpected execution path');
+}
+
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page): Promise<{
   energySalesInfo: EnergySalesProcess,
   hydrogenSalesTotal: HydrogenSalesInfo,
@@ -90,34 +110,36 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
 }
 
 export async function mainTask() {
-  console.time('Session');
-  const { browser, page } = await initializeBrowser();
-  try {
-    await loginToEnergyManager(page);
-    let data = await fetchGameSessionData(page);
-    let decisions: TaskDecisions = makeDecisions(data);
-    let results = await executeTasks(decisions, data, page);
+  await withRetry(async () => {
+    console.time('Session');
+    const { browser, page } = await initializeBrowser();
+    try {
+      await loginToEnergyManager(page);
+      let data = await fetchGameSessionData(page);
+      let decisions: TaskDecisions = makeDecisions(data);
+      let results = await executeTasks(decisions, data, page);
 
-    // If a hydrogen silo sale or transfer was detected, wait for 2 mins before re-executing tasks to allow continuation of storage
-    if (results.hydrogenSalesTotal.includingSilo || results.storeHydrogen) {
-      console.log(`\nHydrogen silo ${results.hydrogenSalesTotal.includingSilo ? 'sale' : 'transfer'} detected. Waiting for 2 mins before re-executing tasks.\n`);
-      await delay(120000);
-      data = await fetchGameSessionData(page);
-      decisions = makeDecisions(data);
-      await executeTasks(decisions, data, page);
+      // If a hydrogen silo sale or transfer was detected, wait for 2 mins before re-executing tasks to allow continuation of storage
+      if (results.hydrogenSalesTotal.includingSilo || results.storeHydrogen) {
+        console.log(`\nHydrogen silo ${results.hydrogenSalesTotal.includingSilo ? 'sale' : 'transfer'} detected. Waiting for 2 mins before re-executing tasks.\n`);
+        await delay(120000);
+        data = await fetchGameSessionData(page);
+        decisions = makeDecisions(data);
+        await executeTasks(decisions, data, page);
+      }
+    } finally {
+      await browser.close();
+      console.timeEnd('Session');
     }
-
-  } catch (error) {
-    console.error('An error occurred during the main task:', error);
-  } finally {
-    await browser.close();
-    console.timeEnd('Session');
-  }
+  }, 2, 120000);
 }
 
 function startScheduler() {
-  mainTask();
-  scheduleJob('10 0 * * * *', mainTask);
+  mainTask().catch(error => { console.error('Failed to execute mainTask after retries:', error); });
+
+  scheduleJob('10 0 * * * *', () => {
+    mainTask().catch(error => { console.error('Failed to execute mainTask after retries:', error); });
+  });
 }
 
 startScheduler();

@@ -107,3 +107,14 @@ export async function getEnergyOutputAmount(page: Page): Promise<number | null> 
     return null;
   }
 }
+
+export async function waitForMainModal(page: Page) {
+  await page.waitForSelector('#popup', { visible: true });
+  await page.waitForSelector('#main-modal-container', { visible: true });
+}
+
+export async function closeMainModal(page: Page) {
+  await page.click('#main-modal-container .opa-light.text-center.intro-disable');
+  await page.waitForSelector('#main-modal-container', { hidden: true });
+  await page.waitForSelector('#popup', { hidden: true });
+}

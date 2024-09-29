@@ -1,6 +1,6 @@
 import { Page } from "puppeteer";
 import { EnergySalesInfo, GridStorage } from "../types/interface";
-import { ensureSidebarOpen, hideSalesResultPopup } from "../automation/interactions";
+import { closeMainModal, ensureSidebarOpen, hideSalesResultPopup, waitForMainModal } from "../automation/interactions";
 import { delay } from "../utils/helpers";
 import { captureScreenshot } from "../automation/browser";
 import { clickElement } from "../automation/helpers";
@@ -47,8 +47,7 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
       break;
   }
 
-  await page.click('#main-modal-container .opa-light.text-center.intro-disable');
-  await page.waitForSelector('#main-modal-container', { hidden: true });
+  await closeMainModal(page);
   await hideSalesResultPopup(page);
 
   const soldToGridName = sellDecision.target === 'alternative' ? sellDecision.gridName : (sellDecision.action === 'sell' ? currentGrid.gridName : null);
@@ -105,8 +104,7 @@ async function extractUpcomingValue(page: Page) {
 async function clickDollarSignAndWaitForModal(page: Page) {
   await page.waitForSelector('.bi.bi-currency-dollar');
   await page.click('#details-pane .bi.bi-currency-dollar');
-  await page.waitForSelector('#main-modal-container');
-  await delay(200);
+  await waitForMainModal(page);
 }
 
 async function openAdvancedTab(page: Page) {

@@ -4,16 +4,18 @@ import { getNumericValue } from "../utils/browser-data-helpers";
 import { delay } from "../utils/helpers";
 import { captureScreenshot } from "../automation/browser";
 import { GameSessionData } from "../types/interface";
+import { closeMainModal, waitForMainModal } from "../automation/interactions";
 
 export async function storeGridHydrogen(page: Page, data: GameSessionData): Promise<boolean> {
   let didStoreHydrogen = false;
   try {
     await clickElement(page, '.footer-new .col[onclick="popup(\'power-exchange.php\');"]');
+    await waitForMainModal(page);
 
     await page.waitForSelector('#header-plants');
     await clickElement(page, '#header-plants');
 
-    await delay(1000);
+    await delay(1100);
 
     await page.waitForSelector('.total-charge-hydrogen');
 
@@ -27,8 +29,8 @@ export async function storeGridHydrogen(page: Page, data: GameSessionData): Prom
     console.error('Error storing grid hydrogen:', error);
     captureScreenshot(page, 'storeGridHydrogen.png');
   } finally {
-    await page.click('#main-modal-container .opa-light.text-center.intro-disable');
-    await page.waitForSelector('#main-modal-container', { hidden: true });
+    await closeMainModal(page);
+
     return didStoreHydrogen;
   }
 }

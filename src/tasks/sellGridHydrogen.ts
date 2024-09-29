@@ -1,6 +1,6 @@
 import { Page } from "puppeteer";
 import { clickElement } from "../automation/helpers";
-import { getSalesResultPopup } from "../automation/interactions";
+import { closeMainModal, getSalesResultPopup, waitForMainModal } from "../automation/interactions";
 import { getNumericValue } from "../utils/browser-data-helpers";
 import { delay } from "../utils/helpers";
 import { GameSessionData, HydrogenSalesInfo, TaskDecisions } from "../types/interface";
@@ -11,11 +11,12 @@ export async function sellGridHydrogen(page: Page, data: GameSessionData, decisi
   let saleIncludesSilo = false;
   try {
     await clickElement(page, '.footer-new .col[onclick="popup(\'power-exchange.php\');"]');
+    await waitForMainModal(page);
 
     await page.waitForSelector('#header-plants');
     await clickElement(page, '#header-plants');
 
-    await delay(1000);
+    await delay(1100);
 
     // Sell main hydrogen
     if (decisions.sellHydrogen) {
@@ -53,8 +54,7 @@ export async function sellGridHydrogen(page: Page, data: GameSessionData, decisi
     console.error('Error selling grid hydrogen:', error);
     captureScreenshot(page, 'sellGridHydrogen.png');
   } finally {
-    await page.click('#main-modal-container .opa-light.text-center.intro-disable');
-    await page.waitForSelector('#main-modal-container', { hidden: true });
+    await closeMainModal(page);
     return { sale: totalSales, includingSilo: saleIncludesSilo };
   }
 }

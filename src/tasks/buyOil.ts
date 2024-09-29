@@ -1,7 +1,7 @@
 import { Page } from "puppeteer";
 import { GameSessionData } from "../types/interface";
 import { clickElement } from "../automation/helpers";
-import { switchCommoditiesTab } from "../automation/interactions";
+import { closeMainModal, switchCommoditiesTab, waitForMainModal } from "../automation/interactions";
 import { delay } from "../utils/helpers";
 
 async function getValueByLabel(page: Page, label: string): Promise<number> {
@@ -37,14 +37,12 @@ async function calculateOilToBuy(page: Page): Promise<number> {
   let oilToBuy = 0;
   try {
     await clickElement(page, '.footer-new .col[onclick="popup(\'commodities.php\');"]');
-    await page.waitForSelector('#main-modal-container', { visible: true });
+    await waitForMainModal(page);
     await page.waitForSelector('#commodities-main');
     await switchCommoditiesTab(page, 'oil');
     await delay(300);
     oilToBuy = await calculateAmountNeededToFill(page);
-    await page.click('#main-modal-container .opa-light.text-center.intro-disable');
-    await delay(300);
-    await page.waitForSelector('#main-modal-container', { hidden: true });
+    await closeMainModal(page);
     return oilToBuy;
   } catch (error) {
     console.error('Error opening oil page:', error);

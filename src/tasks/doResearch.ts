@@ -15,30 +15,12 @@ export async function doResearch(page: Page, data: GameSessionData): Promise<num
     return 0;
   }
 
-  // Define the priority list
-  const priorityList: number[] = [182, 181, 3, 1];
-
-  // Sort researchData based on priority
-  const sortedResearchData = [...researchData].sort((a, b) => {
-    const priorityA = priorityList.indexOf(a.id);
-    const priorityB = priorityList.indexOf(b.id);
-
-    if (priorityA !== -1 && priorityB !== -1) {
-      return priorityA - priorityB; // Both have priority, sort accordingly
-    } else if (priorityA !== -1) {
-      return -1; // Only a has priority
-    } else if (priorityB !== -1) {
-      return 1; // Only b has priority
-    } else {
-      return 0; // Neither has priority, keep original order
-    }
-  });
+  const orderedResearchList = getOrderedResearchList(data);
 
   const researchesToDo: ResearchInfo[] = [];
   let stationsUsed = 0;
 
-  // Iterate through sortedResearchData and select affordable researches
-  for (const research of sortedResearchData) {
+  for (const research of orderedResearchList) {
     if (stationsUsed >= availableResearchStations) {
       break;
     }
@@ -64,7 +46,6 @@ export async function doResearch(page: Page, data: GameSessionData): Promise<num
       }, id);
 
       if (response.ok) {
-        console.log(`Research ID ${id} completed successfully.`);
         return true;
       } else {
         console.warn(`Research ID ${id} failed with status ${response.status}.`);
@@ -84,4 +65,53 @@ export async function doResearch(page: Page, data: GameSessionData): Promise<num
   const successfulResearches = results.filter(result => result).length;
 
   return successfulResearches;
+}
+
+const priorityConfig = {
+  priorityList: [182, 181, 3, 1], // High Priority IDs
+  oilResearchIds: [26, 12, 14],    // Oil-Related Research IDs
+  stockResearchIds: [5, 6, 7, 8],  // Stock-Related Research IDs
+};
+
+function getOrderedResearchList(data: GameSessionData): ResearchInfo[] {
+  const { researchData } = data.research;
+  const plants = data.plants;
+  const hasOilPlants = plants.some((plant) => plant.plantType === "fossil");
+
+  const { priorityList, oilResearchIds, stockResearchIds } = priorityConfig;
+
+  // Define priority groups
+  const priorityGroups: { group: number; ids: number[] }[] = [
+    { group: 1, ids: priorityList },
+    { group: 2, ids: oilResearchIds },
+    { group: 4, ids: stockResearchIds }, // Lower priority
+  ];
+
+  const DEFAULT_GROUP = 3; // Medium priority
+
+  // Assign priority group to each research item
+  const prioritizedResearch = researchData.map((research) => {
+    let assignedGroup = DEFAULT_GROUP;
+
+    for (const group of priorityGroups) {
+      if (group.ids.includes(research.id)) {
+        assignedGroup = group.group;
+        break;
+      }
+    }
+
+    // If the user doesn't have oil plants, demote oil-related researches
+    if (!hasOilPlants && oilResearchIds.includes(research.id)) {
+      assignedGroup = DEFAULT_GROUP;
+    }
+
+    return { ...research, priorityGroup: assignedGroup };
+  });
+
+  // Sort based on priorityGroup
+  const sortedResearch = prioritizedResearch.sort(
+    (a, b) => a.priorityGroup - b.priorityGroup
+  );
+
+  return sortedResearch;
 }

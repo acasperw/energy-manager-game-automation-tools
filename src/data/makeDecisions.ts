@@ -16,6 +16,8 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
 
   let storeHydrogen = false;
 
+  let doResearch = false;
+
   // Power grids (excluding p2x storages)
   const nonP2xGrids = filterGridsByStorageType(data.energyGrids, 'non-p2x');
   if (nonP2xGrids.some(grid => isGridChargeAboveThreshold(grid, 'non-p2x', STORAGE_CHARGE_THRESHOLD_MIN))) {
@@ -80,16 +82,26 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     storeHydrogen = true;
   }
 
+  // Research
+  if (data.research.availableResearchStations > 0 && data.research.researchData.length > 0) {
+    doResearch = true;
+  }
+
   return {
     sellEnergy,
     sellHydrogen,
     sellHydrogenSilo,
+
     enableStoragesPlants,
     reenableSolarPlants,
     solarPlantsToReenable,
+
     buyCo2Quotas,
     buyOil,
     buyUranium,
-    storeHydrogen
+
+    storeHydrogen,
+
+    doResearch
   };
 }

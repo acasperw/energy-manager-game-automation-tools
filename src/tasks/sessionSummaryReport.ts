@@ -13,12 +13,17 @@ export async function sessionSummaryReport(
   reenabledSolarPlants: ReEnablePlantsResult,
   oilBought: number,
   uraniumBought: number,
-  storeHydrogen: boolean
+  storeHydrogen: boolean,
+  didResearch: number
 ) {
 
   // Save plant factors to file
   const factorsPerGrid: Record<string, Record<string, number>> = extractFactorsPerGrid(data);
   await updateFactorsSummary(factorsPerGrid);
+
+  if (didResearch > 0) {
+    console.log(`\nResearch: ${didResearch} research items were started.`);
+  }
 
   if (energySalesInfo.processedGridsResults.length > 0) {
     console.log('\nEnergy Sales:');

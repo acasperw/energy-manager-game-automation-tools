@@ -16,6 +16,8 @@ export interface TaskDecisions {
   buyUranium: boolean;
 
   storeHydrogen: boolean;
+
+  doResearch: boolean;
 }
 
 export interface StorageInfo {
@@ -42,6 +44,11 @@ export interface GridStorage {
   discharging: boolean;
 }
 
+export interface ResearchInfo {
+  id: number;
+  price: number;
+}
+
 export interface GameSessionData {
   plants: Plant[];
   energyGrids: GridStorage[];
@@ -55,6 +62,11 @@ export interface GameSessionData {
     hydrogenPrice: number;
     hydrogenSiloHolding: number;
     hydrogenSiloCapacity: number;
+  };
+
+  research: {
+    availableResearchStations: number;
+    researchData: ResearchInfo[];
   };
 }
 

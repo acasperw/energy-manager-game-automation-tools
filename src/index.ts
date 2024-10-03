@@ -13,6 +13,7 @@ import { buyOil } from './tasks/buyOil';
 import { delay, withRetry } from './utils/helpers';
 import { refuelEnableStoragesPlants } from './tasks/enableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
+import { doResearch } from './tasks/doResearch';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page): Promise<{
   energySalesInfo: EnergySalesProcess,
@@ -32,6 +33,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let oilBought = 0;
   let uraniumBought = 0;
   let storeHydrogen = false;
+  let didResearch = 0;
 
   console.log('\n\n--------- Session summary report --------');
 
@@ -63,6 +65,10 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     reenabledSolarPlants = await reEnableSolarPlants(page, data, decisions);
   }
 
+  if (decisions.doResearch) {
+    didResearch = await doResearch(page, data);
+  }
+
   await sessionSummaryReport(
     data,
     decisions,
@@ -73,7 +79,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     reenabledSolarPlants,
     oilBought,
     uraniumBought,
-    storeHydrogen
+    storeHydrogen,
+    didResearch
   );
 
   // Return the results for further processing

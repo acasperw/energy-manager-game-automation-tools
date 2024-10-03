@@ -67,6 +67,7 @@ export async function buyOil(page: Page, data: GameSessionData): Promise<number>
     }, oilToBuy);
 
     if (response.ok) {
+      data.userMoney -= oilToBuy * data.oilBuyPrice;
       return oilToBuy;
     } else {
       console.error(`Failed to buy Oil. Server responded with status: ${response.status}`);

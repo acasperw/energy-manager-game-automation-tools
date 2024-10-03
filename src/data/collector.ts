@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { GameSessionData, GridStorage, StorageInfo } from "../types/interface";
+import { GameSessionData, GridStorage, ResearchInfo, StorageInfo } from "../types/interface";
 import { BASE_URL } from "../config";
 import { Plant, ProductionData, UserData } from "../types/api";
 import * as cheerio from 'cheerio';
@@ -15,6 +15,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   const uraniumPriceDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=uranium`;
   const demandUpdateEndpoint = `${BASE_URL}/api/demand.update.php`;
   const hydrogenExchangeEndpoint = `${BASE_URL}/hydrogen-exchange.php`;
+  const checkResearchEndpoint = `${BASE_URL}/research.php`;
 
   const [
     userData,
@@ -23,7 +24,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     co2Data,
     oilBuyPriceData,
     uraniumPriceData,
-    hydrogenExchangeResponse
+    hydrogenExchangeResponse,
+    checkResearchResponse,
   ] = await Promise.all([
     fetchApiData<UserData>(page, userDataEndpoint),
     fetchApiData<ProductionData>(page, productionDataEndpoint),
@@ -32,7 +34,10 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     fetchApiData<number[]>(page, oilBuyPriceDataEndpoint),
     fetchApiData<number[]>(page, uraniumPriceDataEndpoint),
     postApiData<string>(page, hydrogenExchangeEndpoint),
+    postApiData<string>(page, checkResearchEndpoint),
   ]);
+
+  const userMoney = parseFloat(userData.userData.account);
 
   // Get grid demand list
   const gridList = Object.keys(userData.grid).reduce((acc, key) => { acc[key] = parseInt(key); return acc; }, {} as Record<string, number>);
@@ -47,6 +52,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   // Hydrogen Silo data
   const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
 
+  const research = parseResearchEndpoint(checkResearchResponse, userMoney);
+
   return {
     plants: plants,
     energyGrids,
@@ -54,12 +61,13 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     co2Value: co2Data.at(-1) ?? 0,
     oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
     uraniumPrice: uraniumPriceData.at(-1) ?? 0,
-    userMoney: parseFloat(userData.userData.account),
+    userMoney,
     hydrogen: {
       hydrogenPrice: hydrogenData.at(-1) ?? 0,
       hydrogenSiloHolding: hydrogenSiloHolding,
       hydrogenSiloCapacity: hydrogenSiloCapacity,
     },
+    research
   };
 }
 
@@ -178,7 +186,7 @@ export async function postApiData<T>(page: Page, url: string): Promise<T> {
   }, url) as T;
 }
 
-export function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hydrogenSiloCapacity: number } {
+function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hydrogenSiloCapacity: number } {
   const $ = cheerio.load(html);
 
   // Extract Hydrogen Silo Holding
@@ -204,5 +212,91 @@ export function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: numb
   return {
     hydrogenSiloHolding: isNaN(hydrogenSiloHolding) ? 0 : hydrogenSiloHolding,
     hydrogenSiloCapacity: isNaN(hydrogenSiloCapacity) ? 0 : hydrogenSiloCapacity,
+  };
+}
+
+function parseResearchEndpoint(html: string, accountBalance: number): GameSessionData['research'] {
+  const $ = cheerio.load(html);
+
+  // Extract Research Station Count
+  const researchStationElement = $('#res-slots');
+  const availableResearchStations = researchStationElement.length
+    ? parseInt(researchStationElement.text().trim())
+    : 0;
+
+  const researchData: ResearchInfo[] = [];
+  const allResearchAbleElements = $('.res-sorting');
+
+  allResearchAbleElements.each((_, element) => {
+    const elem = $(element);
+
+    // 1. Exclude Fully Researched Items
+    if (elem.hasClass('completed')) {
+      return;
+    }
+
+    // 2. Exclude Items with Unmet Prerequisites
+    const requireContainer = elem.find('.require-container');
+    if (requireContainer.length) {
+      return;
+    }
+
+    // 3. Exclude Ongoing Research
+    const researching = elem.find(`[id^="research-active-"]`).length > 0;
+    if (researching) {
+      return;
+    }
+
+    // 4. Check for Available Research Button
+    const button = elem.find('button.res-btn');
+    if (button.length === 0) {
+      return;
+    }
+
+    // 5. Exclude Hidden or Inactive Buttons
+    const isHidden = button.hasClass('hidden') || button.hasClass('not-active-light') || button.css('display') === 'none';
+    if (isHidden) {
+      return;
+    }
+
+    // 6. Extract Research ID from Button ID (e.g., 'research-button-2' => 2)
+    const buttonId = button.attr('id');
+    if (!buttonId) {
+      return;
+    }
+
+    const idMatch = buttonId.match(/research-button-(\d+)/);
+    if (!idMatch || idMatch.length < 2) {
+      return;
+    }
+
+    const id = parseInt(idMatch[1]);
+    if (isNaN(id)) {
+      return;
+    }
+
+    // 7. Extract Price from Button Text (e.g., '$ 82,960,000' => 82960000)
+    const priceText = button.text().trim();
+    const priceMatch = priceText.match(/\$[\s,]*([\d,]+)/);
+    if (!priceMatch || priceMatch.length < 2) {
+      return;
+    }
+
+    const price = parseInt(priceMatch[1].replace(/,/g, ''));
+    if (isNaN(price)) {
+      return;
+    }
+
+    // 8. Exclude Items with Insufficient Account Balance
+    if (price > accountBalance) {
+      return;
+    }
+
+    researchData.push({ id, price });
+  });
+
+  return {
+    availableResearchStations,
+    researchData
   };
 }

@@ -72,5 +72,6 @@ export async function closeBrowser(): Promise<void> {
   if (browser) {
     await browser.close();
     browser = null;
+    console.log('Browser closed');
   }
 }

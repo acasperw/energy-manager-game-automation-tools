@@ -118,7 +118,7 @@ export async function mainTask() {
       await closeBrowser();
       console.timeEnd('Session');
     }
-  }, 2, 120000);
+  }, 2, 120000, async (error, attempt) => { await closeBrowser() });
 }
 
 function startScheduler() {

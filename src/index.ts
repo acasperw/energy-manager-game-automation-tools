@@ -97,10 +97,12 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
 }
 
 export async function mainTask() {
+  let page: Page | null = null;
   await withRetry(async () => {
     console.time('Session');
-    const { page } = await initializeBrowser();
     try {
+      const { page: newPage } = await initializeBrowser();
+      page = newPage;
       await loginToEnergyManager(page);
       let data = await fetchGameSessionData(page);
       let decisions: TaskDecisions = makeDecisions(data);
@@ -115,7 +117,9 @@ export async function mainTask() {
         await executeTasks(decisions, data, page);
       }
     } finally {
-      await closeBrowser();
+      if (page) {
+        await page.close();
+      }
       console.timeEnd('Session');
     }
   }, 2, 120000, async (error, attempt) => { await closeBrowser() });

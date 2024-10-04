@@ -8,41 +8,45 @@ import { clickElement } from './helpers';
 let browser: Browser | null = null;
 
 export async function initializeBrowser(): Promise<{ browser: Browser; page: Page }> {
-  browser = await puppeteer.launch({
-    headless: !!process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false', '--single-process', '--no-first-run', '--disable-accelerated-2d-canvas', '--disable-dev-shm-usage', '--no-zygote', '--ignore-certificate-errors'],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    defaultViewport: { width: 767, height: 960 },
-    acceptInsecureCerts: true
-  });
+  if (!browser) {
+    browser = await puppeteer.launch({
+      headless: !!process.env.PUPPETEER_EXECUTABLE_PATH,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false', '--single-process', '--no-first-run', '--disable-accelerated-2d-canvas', '--disable-dev-shm-usage', '--no-zygote'],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      defaultViewport: { width: 767, height: 960 }
+    });
+  }
   const page = await browser.newPage();
   return { browser, page };
 }
 
 export async function loginToEnergyManager(page: Page): Promise<void> {
-  await page.goto(`${BASE_URL}/weblogin/`, { waitUntil: 'networkidle0', timeout: 80000 });
+  await page.goto(`${BASE_URL}`, { waitUntil: 'networkidle0', timeout: 80000 });
 
-  if (!LOGIN_EMAIL || !LOGIN_PASSWORD) {
-    throw new Error('Please set LOGIN_EMAIL and LOGIN_PASSWORD in the .env file');
-  }
+  const currentUrl = page.url();
+  if (currentUrl.includes('/weblogin/')) {
+    if (!LOGIN_EMAIL || !LOGIN_PASSWORD) {
+      throw new Error('Please set LOGIN_EMAIL and LOGIN_PASSWORD in the .env file');
+    }
 
-  try {
-    await delay(200);
-    await page.waitForSelector('#signin-form', { visible: true });
-    await page.type('#loginMail', LOGIN_EMAIL);
-    await page.type('#loginPass', LOGIN_PASSWORD);
-    await page.waitForSelector('#signin-form [type="submit"]:not([disabled])');
-    const navigationPromise = page.waitForNavigation({ timeout: 180000 });
-    await delay(200);
-    await clickElement(page, '#signin-form [type="submit"]');
-    await navigationPromise;
-    await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 180000 });
-    await handleLoginTip(page);
-    await delay(200);
-  } catch (error) {
-    console.error('An error occurred during login:', error);
-    await captureScreenshot(page, 'login-error.png');
-    throw error;
+    try {
+      await delay(200);
+      await page.waitForSelector('#signin-form', { visible: true });
+      await page.type('#loginMail', LOGIN_EMAIL);
+      await page.type('#loginPass', LOGIN_PASSWORD);
+      await page.waitForSelector('#signin-form [type="submit"]:not([disabled])');
+      const navigationPromise = page.waitForNavigation({ timeout: 180000 });
+      await delay(200);
+      await clickElement(page, '#signin-form [type="submit"]');
+      await navigationPromise;
+      await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 180000 });
+      await handleLoginTip(page);
+      await delay(200);
+    } catch (error) {
+      console.error('An error occurred during login:', error);
+      await captureScreenshot(page, 'login-error.png');
+      throw error;
+    }
   }
 }
 

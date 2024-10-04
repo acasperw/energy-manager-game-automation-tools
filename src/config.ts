@@ -21,4 +21,6 @@ export const CO2_PRICE_THRESHOLD_MAX = 18; // Maximum price to buy CO2 Quotas at
 export const OIL_PRICE_THRESHOLD_MAX = 1.8; // Maximum price to buy oil at
 export const URANIUM_PRICE_THRESHOLD_MAX = 5000; // Maximum price to buy uranium at
 
+export const RESEARCH_BUDGET_PERCENTAGE = 0.2; // Percentage of total budget to allocate to research (0.1 = 10%)
+
 export const ENHANCED_REPORTING = false;

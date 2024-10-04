@@ -1,5 +1,5 @@
 import { GameSessionData, TaskDecisions } from "../types/interface";
-import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, RESEARCH_BUDGET_PERCENTAGE, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
 import { filterGridsByStorageType, isGridChargeAboveThreshold } from "../utils/grid-utils";
 
 export function makeDecisions(data: GameSessionData): TaskDecisions {
@@ -83,7 +83,12 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   }
 
   // Research
-  if (data.research.availableResearchStations > 0 && data.research.researchData.length > 0) {
+  const researchBudget = data.userMoney * RESEARCH_BUDGET_PERCENTAGE;
+  if (
+    data.research.availableResearchStations > 0 &&
+    data.research.researchData.length > 0 &&
+    data.research.researchData.some(research => research.price <= researchBudget)
+  ) {
     doResearch = true;
   }
 

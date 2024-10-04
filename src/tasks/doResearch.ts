@@ -1,5 +1,6 @@
 import { Page } from "puppeteer";
 import { GameSessionData, ResearchInfo } from "../types/interface";
+import { RESEARCH_BUDGET_PERCENTAGE } from "../config";
 
 /**
  * Performs research actions based on available research stations and prioritized research list.
@@ -9,27 +10,34 @@ import { GameSessionData, ResearchInfo } from "../types/interface";
  */
 export async function doResearch(page: Page, data: GameSessionData): Promise<number> {
   const { availableResearchStations, researchData } = data.research;
-  let userMoney = data.userMoney;
+  const researchBudget = data.userMoney * RESEARCH_BUDGET_PERCENTAGE;
 
-  if (availableResearchStations <= 0) {
+  if (availableResearchStations <= 0 || researchData.length === 0) {
     return 0;
   }
 
-  const orderedResearchList = getOrderedResearchList(data);
+  const affordableResearch = researchData.filter(research => research.price <= researchBudget);
+  if (affordableResearch.length === 0) {
+    return 0;
+  }
+
+  const orderedResearchList = getOrderedResearchList({
+    ...data,
+    research: { ...data.research, researchData: affordableResearch }
+  });
 
   const researchesToDo: ResearchInfo[] = [];
   let stationsUsed = 0;
+  let budgetUsed = 0;
 
   for (const research of orderedResearchList) {
-    if (stationsUsed >= availableResearchStations) {
+    if (stationsUsed >= availableResearchStations || budgetUsed + research.price > researchBudget) {
       break;
     }
 
-    if (research.price <= userMoney) {
-      researchesToDo.push(research);
-      userMoney -= research.price;
-      stationsUsed++;
-    }
+    researchesToDo.push(research);
+    budgetUsed += research.price;
+    stationsUsed++;
   }
 
   if (researchesToDo.length === 0) {

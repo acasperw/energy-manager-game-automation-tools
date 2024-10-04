@@ -10,9 +10,10 @@ let browser: Browser | null = null;
 export async function initializeBrowser(): Promise<{ browser: Browser; page: Page }> {
   browser = await puppeteer.launch({
     headless: !!process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false', '--single-process', '--no-first-run', '--disable-accelerated-2d-canvas', '--disable-dev-shm-usage', '--no-zygote'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false', '--single-process', '--no-first-run', '--disable-accelerated-2d-canvas', '--disable-dev-shm-usage', '--no-zygote', '--ignore-certificate-errors'],
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
     defaultViewport: { width: 767, height: 960 },
+    acceptInsecureCerts: true
   });
   const page = await browser.newPage();
   return { browser, page };
@@ -72,6 +73,5 @@ export async function closeBrowser(): Promise<void> {
   if (browser) {
     await browser.close();
     browser = null;
-    console.log('Browser closed');
   }
 }

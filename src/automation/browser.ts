@@ -21,15 +21,17 @@ export async function initializeBrowser(): Promise<{ browser: Browser; page: Pag
 }
 
 export async function loginToEnergyManager(page: Page): Promise<void> {
-  await page.goto(`${BASE_URL}`, { waitUntil: 'networkidle0', timeout: 80000 });
 
-  const currentUrl = page.url();
-  if (currentUrl.includes('/weblogin/')) {
-    if (!LOGIN_EMAIL || !LOGIN_PASSWORD) {
-      throw new Error('Please set LOGIN_EMAIL and LOGIN_PASSWORD in the .env file');
-    }
+  if (!LOGIN_EMAIL || !LOGIN_PASSWORD) {
+    throw new Error('Please set LOGIN_EMAIL and LOGIN_PASSWORD in the .env file');
+  }
 
-    try {
+  try {
+    await page.goto(`${BASE_URL}`, { waitUntil: 'networkidle0', timeout: 80000 });
+    const currentUrl = page.url();
+
+    //  Check if we are on the login page and login if needed
+    if (currentUrl.includes('/weblogin/')) {
       await delay(200);
       await page.waitForSelector('#signin-form', { visible: true });
       await page.type('#loginMail', LOGIN_EMAIL);
@@ -39,14 +41,16 @@ export async function loginToEnergyManager(page: Page): Promise<void> {
       await delay(200);
       await clickElement(page, '#signin-form [type="submit"]');
       await navigationPromise;
-      await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 180000 });
-      await handleLoginTip(page);
-      await delay(200);
-    } catch (error) {
-      console.error('An error occurred during login:', error);
-      await captureScreenshot(page, 'login-error.png');
-      throw error;
     }
+
+    await page.waitForSelector('#loader-wrapper', { hidden: true, timeout: 180000 });
+    await handleLoginTip(page);
+    await delay(200);
+
+  } catch (error) {
+    console.error('An error occurred during login or page load:', error);
+    await captureScreenshot(page, 'login-error.png');
+    throw error;
   }
 }
 

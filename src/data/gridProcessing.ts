@@ -164,7 +164,7 @@ function findBestSellingOption(advancedTabRows: BestSellingOption[], currentGrid
   );
 
   if (eligibleOptions.length === 0) {
-    console.log('No eligible selling options found in advanced tab');
+    console.log(`No eligible selling options (out of ${advancedTabRows.length}) found in advanced tab`);
     return null;
   }
 

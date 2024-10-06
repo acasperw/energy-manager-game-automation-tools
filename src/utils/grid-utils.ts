@@ -28,3 +28,12 @@ export function getAllEligibleEnergyGridsWeCanSellTo(energyGrids: GridStorage[])
     .filter(grid => !grid.isLowDemand)
     .sort((a, b) => b.mwhValue - a.mwhValue);
 }
+
+export const parseCoordinate = (coord: string | number): number => {
+  if (typeof coord === 'number') return coord;
+  const parsed = parseFloat(coord);
+  if (isNaN(parsed)) {
+    throw new Error(`Invalid coordinate value: ${coord}`);
+  }
+  return parsed;
+};

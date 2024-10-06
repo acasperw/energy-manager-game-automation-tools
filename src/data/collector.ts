@@ -92,7 +92,10 @@ function processPlants(plantsData: UserData['plants']): {
       cloudcover: plant.cloudcover,
       storageId: plant.storageId,
       lat: plant.lat,
-      lon: plant.lon
+      lon: plant.lon,
+      fossilStop: plant.fossilStop,
+      fuelCapacity: plant.fuelCapacity,
+      fuelHolding: plant.fuelHolding
     });
 
     const storageId = plant.storageId.toString();

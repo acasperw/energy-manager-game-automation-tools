@@ -1,45 +1,90 @@
 import { Page } from "puppeteer";
 import { captureScreenshot } from "./browser";
-import { tabName } from "../types/interface";
 import { getNumericValue } from "../utils/browser-data-helpers";
+import { clickElement, getPaneSelectors } from "./helpers";
+import { SidebarType, TabName } from "../types/interface";
 import { delay } from "../utils/helpers";
-import { clickElement } from "./helpers";
 
-export async function ensureSidebarOpen(page: Page, tabName: tabName = 'storage') {
+export async function isSidebarOpen(page: Page, sidebarType: SidebarType): Promise<boolean> {
+  const selectors = getPaneSelectors(sidebarType);
+  const { paneId } = selectors;
+  return await page.evaluate((selector) => {
+    const pane = document.querySelector(selector) as HTMLElement | null;
+    if (!pane) return false;
+    const left = window.getComputedStyle(pane).left;
+    return left === '0px';
+  }, paneId);
+}
+
+export async function closeSidebar(page: Page, sidebarType: SidebarType) {
   try {
-    await delay(200);
-    await page.waitForSelector('#pane-close-helper');
-    const isSidebarClosed = await page.evaluate(() => {
-      const span = document.querySelector('#pane-close-helper span');
-      return span && span.classList.contains('bi-lightning-fill');
-    });
-    if (isSidebarClosed) {
-      await page.click('#pane-close-helper');
-      await page.waitForSelector('#pane-close-helper span.glyphicons-chevron-left');
-      await delay(350);
+    const selectors = getPaneSelectors(sidebarType);
+    const { paneId } = selectors;
+    const sidebarIsOpen = await isSidebarOpen(page, sidebarType);
+    if (sidebarIsOpen) {
+      await clickElement(page, selectors.paneCloseHelperId);
+      await page.waitForFunction((selector) => {
+        const pane = document.querySelector(selector) as HTMLElement | null;
+        return pane ? window.getComputedStyle(pane).left !== '0px' : true;
+      }, { timeout: 5000 }, paneId);
+      await delay(350); // Pane animation delay
     }
-    await switchTab(page, tabName);
   } catch (error) {
-    await captureScreenshot(page, 'error-sidebar.png');
+    await captureScreenshot(page, `error-closing-sidebar-${sidebarType}.png`);
     throw error;
   }
 }
 
-export async function switchTab(page: Page, tabName: tabName) {
-  const validTabs = ['plants', 'storage'];
-  if (!validTabs.includes(tabName)) {
-    throw new Error(`Invalid tab name. Must be one of: ${validTabs.join(', ')}`);
-  }
-  await delay(350);
-  const tabSelector = `#pane-${tabName}`;
-  const isActive = await page.evaluate((selector) => {
-    const tab = document.querySelector(selector);
-    return tab?.classList.contains('pane-tabs-active');
-  }, tabSelector);
+export async function ensureSidebarOpen(page: Page, sidebarType: SidebarType, tabName: TabName) {
+  try {
+    await delay(200);
+    const selectors = getPaneSelectors(sidebarType);
+    const { paneId } = selectors;
+    const allSidebarTypes = Object.values(SidebarType);
+    await Promise.all(allSidebarTypes
+      .filter((type) => type !== sidebarType)
+      .map(async (type) => { await closeSidebar(page, type); }));
 
-  if (!isActive) {
-    await clickElement(page, tabSelector);
-    await page.waitForFunction((selector) => document.querySelector(selector)?.classList.contains('pane-tabs-active'), { timeout: 5000 }, tabSelector);
+    const sidebarIsOpenFlag = await isSidebarOpen(page, sidebarType);
+
+    if (!sidebarIsOpenFlag) {
+      await clickElement(page, selectors.paneCloseHelperId);
+      await page.waitForFunction((selector) => {
+        const pane = document.querySelector(selector) as HTMLElement | null;
+        return pane ? window.getComputedStyle(pane).left === '0px' : false;
+      }, { timeout: 5000 }, paneId);
+      await delay(350); // Pane animation delay
+    }
+    await switchTab(page, sidebarType, tabName);
+  } catch (error) {
+    await captureScreenshot(page, `error-sidebar-${sidebarType}.png`);
+    throw error;
+  }
+}
+
+export async function switchTab(page: Page, sidebarType: SidebarType, tabName: TabName) {
+  const selectors = getPaneSelectors(sidebarType);
+
+  const currentTabSelector = selectors.tabSelector(tabName);
+
+  try {
+    await delay(350);
+    const isActive = await page.evaluate((selector) => {
+      const tab = document.querySelector(selector);
+      return tab?.classList.contains('pane-tabs-active') || false;
+    }, currentTabSelector);
+
+    if (!isActive) {
+      await clickElement(page, currentTabSelector);
+      await page.waitForFunction((selector) => {
+        const tab = document.querySelector(selector);
+        return tab?.classList.contains('pane-tabs-active') || false;
+      }, { timeout: 5000 }, currentTabSelector);
+      await delay(350);
+    }
+  } catch (error) {
+    await captureScreenshot(page, `error-switching-tab-${sidebarType}-${tabName}.png`);
+    throw error;
   }
 }
 

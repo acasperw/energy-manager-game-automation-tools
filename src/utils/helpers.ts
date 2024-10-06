@@ -19,9 +19,6 @@ export function formatEnergy(kWh: number): string {
   return `${value.toLocaleString('en-GB', { maximumFractionDigits: 2 })} ${unit}`;
 }
 
-export function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 export const parseValueToTonnes = (text: string): number => {
   const match = text.match(/([\d,.]+)\s*(kg|t)/i);
@@ -43,6 +40,13 @@ export const parseValueToTonnes = (text: string): number => {
   return value;
 };
 
+
+// Puppeteer helpers
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Program helpers
 export async function withRetry<T>(
   fn: () => Promise<T>,
   retries: number = 3,

@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { RefuelEnableStoragesPlantsResult, GameSessionData } from "../types/interface";
+import { RefuelEnableStoragesPlantsResult, GameSessionData, SidebarType } from "../types/interface";
 import { ensureSidebarOpen, switchTab } from "../automation/interactions";
 import { clickElement, ifElementExists } from "../automation/helpers";
 import { captureScreenshot } from "../automation/browser";
@@ -20,11 +20,8 @@ const FUEL_BASED_PLANTS = ['fossil', 'uranium'];
  * @param data - The current game session data.
  * @returns An object containing the results of the operation.
  */
-export async function refuelEnableStoragesPlants(
-  page: Page,
-  data: GameSessionData
-): Promise<RefuelEnableStoragesPlantsResult> {
-  // Initialize result object
+export async function refuelEnableStoragesPlants(page: Page, data: GameSessionData): Promise<RefuelEnableStoragesPlantsResult> {
+
   const result: RefuelEnableStoragesPlantsResult = {
     totalEnabled: 0,
     totalSkipped: 0,
@@ -35,7 +32,7 @@ export async function refuelEnableStoragesPlants(
   };
 
   try {
-    await ensureSidebarOpen(page, 'plants');
+    await ensureSidebarOpen(page, SidebarType.Production, 'plants');
     await page.waitForSelector('#production-plants-container', { visible: true });
 
     const refuelResult = await reFuelPlants(page, data);
@@ -151,7 +148,7 @@ async function processPlantBatch(
 async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRefuel: boolean, pctRefueled: number }> {
   let didRefuel = false;
   let pctRefueled = 0;
-  await switchTab(page, 'plants');
+  await switchTab(page, SidebarType.Production, 'plants');
 
   try {
     // We only can refuel fuel-based plants that are offline

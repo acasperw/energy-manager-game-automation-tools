@@ -15,6 +15,7 @@ export interface UserData {
   grid: {
     [key: string]: ApiGrid;
   };
+  vessel: Vessel;
 }
 
 export interface ProductionData {
@@ -29,12 +30,18 @@ export interface Plant {
   online: 0 | 1;
   plantType: 'wind' | 'solar' | 'fossil';
   storageId: number;
-  wear: number;
   output: number;
   capacity: number;
 
+  // Factors
   windspeed: number;
   cloudcover: number;
+  wear: number;
+
+  // Fossil plant
+  fossilStop: number;
+  fuelCapacity: number;
+  fuelHolding: number;
 }
 
 export interface Storage {
@@ -68,3 +75,55 @@ export interface ApiGrid {
   gridName: string;
 }
 
+
+// Vessel Route Point
+export interface VesselRoutePoint {
+  lat: string | number;
+  lon: string | number;
+  distance: number;
+}
+
+// Enroute Vessel Information
+export interface EnrouteVesselInfo {
+  departed: string; // UNIX timestamp as string
+  arrived: string;  // UNIX timestamp as string
+  nowTime: number;  // Current UNIX timestamp
+  route: VesselRoutePoint[];
+  distance: string; // Total distance as string
+}
+
+// Detailed Vessel Data Information
+export interface VesselDataInfo {
+  id: string;
+  userid: string;
+  vesselName: string;
+  drillId: string;
+  purTime: string;      // Purchase time as UNIX timestamp string
+  homePort: string;
+  purValue: string;     // Purchase value as string
+  locLat: string;       // Location latitude as string
+  locLon: string;       // Location longitude as string
+  departed: string;     // UNIX timestamp as string
+  arrived: string;      // UNIX timestamp as string
+  fieldLoc: string;
+  refined: string;
+  reverse: string;
+  routeId: string;
+  scanStart: string;
+  scanEnd: string;
+  oilFound: string;
+  oilFoundAt: string;
+  drillStart: string;
+  drillEnd: string;
+  oilOnboard: string;
+  opLat: string | null; // Operational latitude, nullable
+  opLon: string | null; // Operational longitude, nullable
+  radius: string | null;
+  extracted: string;
+}
+
+// Vessel Interface
+export interface Vessel {
+  enroute: Record<string, EnrouteVesselInfo>;
+  data: Record<string, VesselDataInfo>;
+}

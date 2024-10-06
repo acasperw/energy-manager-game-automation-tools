@@ -1,5 +1,5 @@
 import { Page } from 'puppeteer';
-import { GameSessionData, ReEnablePlantsResult, TaskDecisions } from '../types/interface';
+import { GameSessionData, ReEnablePlantsResult, SidebarType, TaskDecisions } from '../types/interface';
 import { ensureSidebarOpen, getEnergyOutputAmount } from '../automation/interactions';
 import { getSunrise, getSunset } from 'sunrise-sunset-js';
 import { delay } from '../utils/helpers';
@@ -15,7 +15,7 @@ export async function reEnableSolarPlants(page: Page, data: GameSessionData, dec
     if (plantsToReenableIds.length === 0) {
       return reEnablePlants;
     }
-    await ensureSidebarOpen(page, 'plants');
+    await ensureSidebarOpen(page, SidebarType.Production, 'plants');
     await page.waitForSelector('#production-plants-container');
     const plantsMap = new Map<string, Plant>();
     data.plants.forEach(plant => { plantsMap.set(plant.plantId, plant); });

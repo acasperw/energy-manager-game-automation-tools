@@ -27,7 +27,7 @@ export async function loginToEnergyManager(page: Page): Promise<void> {
   }
 
   try {
-    await page.goto(`${BASE_URL}`, { waitUntil: 'networkidle0', timeout: 80000 });
+    await page.goto(`${BASE_URL}`, { waitUntil: 'networkidle2', timeout: 180000 });
     const currentUrl = page.url();
 
     //  Check if we are on the login page and login if needed

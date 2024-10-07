@@ -18,63 +18,77 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   const hydrogenExchangeEndpoint = `${BASE_URL}/hydrogen-exchange.php`;
   const checkResearchEndpoint = `${BASE_URL}/research.php`;
 
-  const [
-    userData,
-    productionData,
-    hydrogenData,
-    co2Data,
-    oilBuyPriceData,
-    uraniumPriceData,
-    hydrogenExchangeResponse,
-    checkResearchResponse,
-  ] = await Promise.all([
-    fetchApiData<UserData>(page, userDataEndpoint),
-    fetchApiData<ProductionData>(page, productionDataEndpoint),
-    fetchApiData<number[]>(page, hydrogenDataEndpoint),
-    fetchApiData<number[]>(page, co2DataEndpoint),
-    fetchApiData<number[]>(page, oilBuyPriceDataEndpoint),
-    fetchApiData<number[]>(page, uraniumPriceDataEndpoint),
-    postApiData<string>(page, hydrogenExchangeEndpoint),
-    postApiData<string>(page, checkResearchEndpoint),
-  ]);
+  try {
+    const userData: UserData = await fetchApiData<UserData>(page, userDataEndpoint);
+    const researchSlots = userData.userData.researchSlots;
+    const userMoney = parseFloat(userData.userData.account);
 
-  const userMoney = parseFloat(userData.userData.account);
+    const [
+      productionData,
+      hydrogenData,
+      co2Data,
+      oilBuyPriceData,
+      uraniumPriceData,
+      hydrogenExchangeResponse,
+    ] = await Promise.all([
+      fetchApiData<ProductionData>(page, productionDataEndpoint),
+      fetchApiData<number[]>(page, hydrogenDataEndpoint),
+      fetchApiData<number[]>(page, co2DataEndpoint),
+      fetchApiData<number[]>(page, oilBuyPriceDataEndpoint),
+      fetchApiData<number[]>(page, uraniumPriceDataEndpoint),
+      postApiData<string>(page, hydrogenExchangeEndpoint)
+    ]);
 
-  // Get grid demand list
-  const gridList = Object.keys(userData.grid).reduce((acc, key) => { acc[key] = parseInt(key); return acc; }, {} as Record<string, number>);
-  const demandUpdateResponse = await postApiDataJson<Record<string, number>>(page, demandUpdateEndpoint, { gridList });
+    // Get grid demand list
+    const gridList = Object.keys(userData.grid).reduce((acc, key) => { acc[key] = parseInt(key); return acc; }, {} as Record<string, number>);
+    const demandUpdateResponse = await postApiDataJson<Record<string, number>>(page, demandUpdateEndpoint, { gridList });
 
-  // Process plants
-  const { plants, storagePlantCount, storagePlantOutputs } = processPlants(userData.plants);
+    // Process plants
+    const { plants, storagePlantCount, storagePlantOutputs } = processPlants(userData.plants);
 
-  // Process energy grids & storages
-  const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
+    // Process energy grids & storages
+    const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
 
-  // Hydrogen Silo data
-  const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
+    // Hydrogen Silo data
+    const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
 
-  // Research data
-  const research = parseResearchEndpoint(checkResearchResponse, userMoney);
+    // Research data
+    let research;
+    if (researchSlots > 0) {
+      try {
+        const checkResearchResponse = await postApiData<string>(page, checkResearchEndpoint);
+        research = parseResearchEndpoint(checkResearchResponse, userMoney);
+      } catch (error) {
+        console.warn("Failed to fetch research data:", error);
+        research = { availableResearchStations: 0, researchData: [] };
+      }
+    } else {
+      research = { availableResearchStations: 0, researchData: [] };
+    }
 
-  // Vessel data
-  const vessels = extractVesselInfo(userData.vessel);
+    // Vessel data
+    const vessels = extractVesselInfo(userData.vessel);
 
-  return {
-    plants: plants,
-    energyGrids,
-    emissionPerKwh: userData.userData.emissionPerKwh ?? 0,
-    co2Value: co2Data.at(-1) ?? 0,
-    oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
-    uraniumPrice: uraniumPriceData.at(-1) ?? 0,
-    userMoney,
-    hydrogen: {
-      hydrogenPrice: hydrogenData.at(-1) ?? 0,
-      hydrogenSiloHolding: hydrogenSiloHolding,
-      hydrogenSiloCapacity: hydrogenSiloCapacity,
-    },
-    research,
-    vessels
-  };
+    return {
+      plants: plants,
+      energyGrids,
+      emissionPerKwh: userData.userData.emissionPerKwh ?? 0,
+      co2Value: co2Data.at(-1) ?? 0,
+      oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
+      uraniumPrice: uraniumPriceData.at(-1) ?? 0,
+      userMoney,
+      hydrogen: {
+        hydrogenPrice: hydrogenData.at(-1) ?? 0,
+        hydrogenSiloHolding: hydrogenSiloHolding,
+        hydrogenSiloCapacity: hydrogenSiloCapacity,
+      },
+      research,
+      vessels
+    };
+  } catch (error) {
+    console.error("Failed to fetch game session data:", error);
+    throw error;
+  }
 }
 
 function processPlants(plantsData: UserData['plants']): {
@@ -229,9 +243,7 @@ function parseResearchEndpoint(html: string, accountBalance: number): GameSessio
 
   // Extract Research Station Count
   const researchStationElement = $('#res-slots');
-  const availableResearchStations = researchStationElement.length
-    ? parseInt(researchStationElement.text().trim())
-    : 0;
+  const availableResearchStations = researchStationElement.length ? parseInt(researchStationElement.text().trim()) : 0;
 
   const researchData: ResearchInfo[] = [];
   const allResearchAbleElements = $('.res-sorting');

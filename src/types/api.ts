@@ -4,7 +4,7 @@ export interface UserData {
     co2neutral: 0 | 1;
     emissionPerKwh: number;
     account: string; // Available money
-
+    researchSlots: number;
   };
   plants: {
     [key: string]: Plant;

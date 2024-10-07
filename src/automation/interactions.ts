@@ -27,7 +27,7 @@ export async function closeSidebar(page: Page, sidebarType: SidebarType) {
         const pane = document.querySelector(selector) as HTMLElement | null;
         return pane ? window.getComputedStyle(pane).left !== '0px' : true;
       }, { timeout: 5000 }, paneId);
-      await delay(350); // Pane animation delay
+      await delay(400); // Pane animation delay
     }
   } catch (error) {
     await captureScreenshot(page, `error-closing-sidebar-${sidebarType}.png`);
@@ -37,7 +37,7 @@ export async function closeSidebar(page: Page, sidebarType: SidebarType) {
 
 export async function ensureSidebarOpen(page: Page, sidebarType: SidebarType, tabName: TabName) {
   try {
-    await delay(200);
+    await delay(400);
     const selectors = getPaneSelectors(sidebarType);
     const { paneId } = selectors;
     const allSidebarTypes = Object.values(SidebarType);
@@ -53,7 +53,7 @@ export async function ensureSidebarOpen(page: Page, sidebarType: SidebarType, ta
         const pane = document.querySelector(selector) as HTMLElement | null;
         return pane ? window.getComputedStyle(pane).left === '0px' : false;
       }, { timeout: 5000 }, paneId);
-      await delay(350); // Pane animation delay
+      await delay(400); // Pane animation delay
     }
     await switchTab(page, sidebarType, tabName);
   } catch (error) {
@@ -68,7 +68,7 @@ export async function switchTab(page: Page, sidebarType: SidebarType, tabName: T
   const currentTabSelector = selectors.tabSelector(tabName);
 
   try {
-    await delay(350);
+    await delay(400);
     const isActive = await page.evaluate((selector) => {
       const tab = document.querySelector(selector);
       return tab?.classList.contains('pane-tabs-active') || false;
@@ -80,7 +80,7 @@ export async function switchTab(page: Page, sidebarType: SidebarType, tabName: T
         const tab = document.querySelector(selector);
         return tab?.classList.contains('pane-tabs-active') || false;
       }, { timeout: 5000 }, currentTabSelector);
-      await delay(350);
+      await delay(400);
     }
   } catch (error) {
     await captureScreenshot(page, `error-switching-tab-${sidebarType}-${tabName}.png`);

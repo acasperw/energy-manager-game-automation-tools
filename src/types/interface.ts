@@ -78,6 +78,8 @@ export interface GameSessionData {
     availableResearchStations: number;
     researchData: ResearchInfo[];
   };
+
+  vessels: VesselInfo[];
 }
 
 export interface EnergySalesProcess {
@@ -112,4 +114,11 @@ export interface RefuelEnableStoragesPlantsResult {
   didRefuel: boolean;
   pctRefueled: number;
   totalDisabled: number;
+}
+
+export interface VesselInfo {
+  id: string;
+  locLat: number;
+  locLon: number;
+  status: 'Anchored' | 'Enroute' | 'Scanning' | 'Drilling';
 }

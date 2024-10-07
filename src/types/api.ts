@@ -122,8 +122,20 @@ export interface VesselDataInfo {
   extracted: string;
 }
 
+export interface VesselOperationInfo {
+  scanEnd: string;      // UNIX timestamp as string
+  drillEnd: string;     // UNIX timestamp as string
+  nowTime: number;      // Current UNIX timestamp
+  posLat: string;       // Position Latitude as string
+  posLon: string;       // Position Longitude as string
+  opLat: string;        // Operational Latitude as string
+  opLon: string;        // Operational Longitude as string
+  radius: string;       // Radius as string
+}
+
 // Vessel Interface
 export interface Vessel {
-  enroute: Record<string, EnrouteVesselInfo>;
   data: Record<string, VesselDataInfo>;
+  operation?: Record<string, VesselOperationInfo>;
+  enroute?: Record<string, EnrouteVesselInfo>;
 }

@@ -1,9 +1,10 @@
 import { Page } from "puppeteer";
-import { GameSessionData, GridStorage, ResearchInfo, StorageInfo } from "../types/interface";
+import { GameSessionData, GridStorage, ResearchInfo, StorageInfo, VesselInfo } from "../types/interface";
 import { BASE_URL } from "../config";
-import { Plant, ProductionData, UserData } from "../types/api";
+import { Plant, ProductionData, UserData, Vessel } from "../types/api";
 import * as cheerio from 'cheerio';
 import { parseValueToTonnes } from "../utils/helpers";
+import { parseCoordinate } from "../utils/grid-utils";
 
 export async function fetchGameSessionData(page: Page): Promise<GameSessionData> {
   // Define API endpoints
@@ -52,7 +53,11 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
   // Hydrogen Silo data
   const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
 
+  // Research data
   const research = parseResearchEndpoint(checkResearchResponse, userMoney);
+
+  // Vessel data
+  const vessels = extractVesselInfo(userData.vessel);
 
   return {
     plants: plants,
@@ -67,7 +72,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       hydrogenSiloHolding: hydrogenSiloHolding,
       hydrogenSiloCapacity: hydrogenSiloCapacity,
     },
-    research
+    research,
+    vessels
   };
 }
 
@@ -91,8 +97,8 @@ function processPlants(plantsData: UserData['plants']): {
       windspeed: plant.windspeed,
       cloudcover: plant.cloudcover,
       storageId: plant.storageId,
-      lat: plant.lat,
-      lon: plant.lon,
+      lat: parseCoordinate(plant.lat),
+      lon: parseCoordinate(plant.lon),
       fossilStop: plant.fossilStop,
       fuelCapacity: plant.fuelCapacity,
       fuelHolding: plant.fuelHolding
@@ -302,4 +308,43 @@ function parseResearchEndpoint(html: string, accountBalance: number): GameSessio
     availableResearchStations,
     researchData
   };
+}
+
+function extractVesselInfo(vessel: Vessel): VesselInfo[] {
+  const vesselInfos: VesselInfo[] = [];
+
+  for (const [vesselId, vesselData] of Object.entries(vessel.data)) {
+    const isEnroute = vessel.enroute && vessel.enroute[vesselId];
+    const isOperating = vessel.operation && vessel.operation[vesselId];
+
+    let status: VesselInfo['status'] = 'Anchored';
+
+    if (isEnroute) {
+      status = 'Enroute';
+    }
+
+    if (isOperating) {
+      const operation = vessel.operation![vesselId];
+      // CURRENT ASSUMPTION - WE NEED TO CONFIRM THIS
+      if (operation.scanEnd && parseInt(operation.scanEnd) > operation.nowTime) {
+        status = 'Scanning';
+      }
+      // CURRENT ASSUMPTION - WE NEED TO CONFIRM THIS
+      if (operation.drillEnd && parseInt(operation.drillEnd) > operation.nowTime) {
+        status = 'Drilling';
+      }
+    }
+
+    const parsedLocLat = parseCoordinate(vesselData.locLat);
+    const parsedLocLon = parseCoordinate(vesselData.locLon);
+
+    vesselInfos.push({
+      id: vesselData.id,
+      locLat: parsedLocLat,
+      locLon: parsedLocLon,
+      status
+    });
+  }
+
+  return vesselInfos;
 }

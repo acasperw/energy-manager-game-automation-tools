@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { GameSessionData, GridStorage, ResearchInfo, StorageInfo, VesselInfo } from "../types/interface";
+import { GameSessionData, GridStorage, ResearchInfo, StorageInfo, VesselInfo, VesselStatus } from "../types/interface";
 import { BASE_URL } from "../config";
 import { Plant, ProductionData, UserData, Vessel } from "../types/api";
 import * as cheerio from 'cheerio';
@@ -317,21 +317,24 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
     const isEnroute = vessel.enroute && vessel.enroute[vesselId];
     const isOperating = vessel.operation && vessel.operation[vesselId];
 
-    let status: VesselInfo['status'] = 'Anchored';
+    let status: VesselStatus = VesselStatus.Anchored;
 
     if (isEnroute) {
-      status = 'Enroute';
+      status = VesselStatus.Enroute;
     }
 
     if (isOperating) {
       const operation = vessel.operation![vesselId];
-      // CURRENT ASSUMPTION - WE NEED TO CONFIRM THIS
-      if (operation.scanEnd && parseInt(operation.scanEnd) > operation.nowTime) {
-        status = 'Scanning';
-      }
-      // CURRENT ASSUMPTION - WE NEED TO CONFIRM THIS
-      if (operation.drillEnd && parseInt(operation.drillEnd) > operation.nowTime) {
-        status = 'Drilling';
+      const scanEndTime = parseInt(operation.scanEnd);
+      const drillEndTime = parseInt(operation.drillEnd);
+      const currentTime = operation.nowTime;
+
+      if (scanEndTime > currentTime) {
+        status = VesselStatus.Scanning;
+      } else if (drillEndTime > currentTime) {
+        status = VesselStatus.Drilling;
+      } else {
+        status = VesselStatus.DrillingFinished;
       }
     }
 

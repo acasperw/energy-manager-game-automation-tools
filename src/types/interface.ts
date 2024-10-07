@@ -116,9 +116,18 @@ export interface RefuelEnableStoragesPlantsResult {
   totalDisabled: number;
 }
 
+export enum VesselStatus {
+  Anchored = 'Anchored',
+  Enroute = 'Enroute',
+  Scanning = 'Scanning',
+  Drilling = 'Drilling',
+  DrillingFinished = 'DrillingFinished',
+  InPort = 'InPort'
+}
+
 export interface VesselInfo {
   id: string;
   locLat: number;
   locLon: number;
-  status: 'Anchored' | 'Enroute' | 'Scanning' | 'Drilling';
+  status: VesselStatus;
 }

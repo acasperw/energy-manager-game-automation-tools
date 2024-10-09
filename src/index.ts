@@ -11,7 +11,7 @@ import { buyC02Quotas } from './tasks/buyC02Quotas';
 import { reEnableSolarPlants } from './tasks/reEnableSolarPlants';
 import { buyOil } from './tasks/buyOil';
 import { delay, withRetry } from './utils/helpers';
-import { refuelEnableStoragesPlants } from './tasks/enableStoragesPlants';
+import { refuelEnableStoragesPlants } from './tasks/refuelEnableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
 import { doResearch } from './tasks/doResearch';
 

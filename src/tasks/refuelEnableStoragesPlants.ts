@@ -148,9 +148,10 @@ async function processPlantBatch(
 async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRefuel: boolean, pctRefueled: number }> {
   let didRefuel = false;
   let pctRefueled = 0;
-  await switchTab(page, SidebarType.Production, 'plants');
 
   try {
+    await switchTab(page, SidebarType.Production, 'plants');
+
     // We only can refuel fuel-based plants that are offline
     const offlineFuelPlants = data.plants.filter(plant => FUEL_BASED_PLANTS.includes(plant.plantType) && !plant.online);
 

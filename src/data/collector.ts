@@ -1,29 +1,28 @@
 import { Page } from "puppeteer";
 import { GameSessionData, GridStorage, ResearchInfo, StorageInfo, VesselInfo, VesselStatus } from "../types/interface";
-import { BASE_URL } from "../config";
+import { BASE_URL, RESEARCH_SLOTS_TO_KEEP_OPEN } from "../config";
 import { Plant, ProductionData, UserData, Vessel } from "../types/api";
 import * as cheerio from 'cheerio';
 import { parseValueToTonnes } from "../utils/helpers";
 import { parseCoordinate } from "../utils/grid-utils";
 
 export async function fetchGameSessionData(page: Page): Promise<GameSessionData> {
-  // Define API endpoints
-  const userDataEndpoint = `${BASE_URL}/api/user.data.php`;
-  const productionDataEndpoint = `${BASE_URL}/api/production.php`;
-  const hydrogenDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=hydrogen`;
-  const co2DataEndpoint = `${BASE_URL}/api/price.history.api.php?target=co2`;
-  const oilBuyPriceDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=oil`;
-  const uraniumPriceDataEndpoint = `${BASE_URL}/api/price.history.api.php?target=uranium`;
-  const demandUpdateEndpoint = `${BASE_URL}/api/demand.update.php`;
-  const hydrogenExchangeEndpoint = `${BASE_URL}/hydrogen-exchange.php`;
-  const checkResearchEndpoint = `${BASE_URL}/research.php`;
+
+  const endpoints = {
+    userData: `${BASE_URL}/api/user.data.php`,
+    productionData: `${BASE_URL}/api/production.php`,
+    hydrogenData: `${BASE_URL}/api/price.history.api.php?target=hydrogen`,
+    co2Data: `${BASE_URL}/api/price.history.api.php?target=co2`,
+    oilBuyPriceData: `${BASE_URL}/api/price.history.api.php?target=oil`,
+    uraniumPriceData: `${BASE_URL}/api/price.history.api.php?target=uranium`,
+    demandUpdate: `${BASE_URL}/api/demand.update.php`,
+    hydrogenExchange: `${BASE_URL}/hydrogen-exchange.php`,
+    checkResearch: `${BASE_URL}/research.php`,
+  };
 
   try {
-    const userData: UserData = await fetchApiData<UserData>(page, userDataEndpoint);
-    const researchSlots = userData.userData.researchSlots;
-    const userMoney = parseFloat(userData.userData.account);
-
     const [
+      userData,
       productionData,
       hydrogenData,
       co2Data,
@@ -31,46 +30,33 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       uraniumPriceData,
       hydrogenExchangeResponse,
     ] = await Promise.all([
-      fetchApiData<ProductionData>(page, productionDataEndpoint),
-      fetchApiData<number[]>(page, hydrogenDataEndpoint),
-      fetchApiData<number[]>(page, co2DataEndpoint),
-      fetchApiData<number[]>(page, oilBuyPriceDataEndpoint),
-      fetchApiData<number[]>(page, uraniumPriceDataEndpoint),
-      postApiData<string>(page, hydrogenExchangeEndpoint)
+      fetchApiData<UserData>(page, endpoints.userData),
+      fetchApiData<ProductionData>(page, endpoints.productionData),
+      fetchApiData<number[]>(page, endpoints.hydrogenData),
+      fetchApiData<number[]>(page, endpoints.co2Data),
+      fetchApiData<number[]>(page, endpoints.oilBuyPriceData),
+      fetchApiData<number[]>(page, endpoints.uraniumPriceData),
+      postApiData<string>(page, endpoints.hydrogenExchange),
     ]);
 
-    // Get grid demand list
+    const researchSlots = userData.userData.researchSlots;
+    const userMoney = parseFloat(userData.userData.account);
+
+    // Fetch demand update & research data (if slots available) from API
     const gridList = Object.keys(userData.grid).reduce((acc, key) => { acc[key] = parseInt(key); return acc; }, {} as Record<string, number>);
-    const demandUpdateResponse = await postApiDataJson<Record<string, number>>(page, demandUpdateEndpoint, { gridList });
+    const demandUpdatePromise = postApiDataJson<Record<string, number>>(page, endpoints.demandUpdate, { gridList });
+    const researchPromise = researchSlots > RESEARCH_SLOTS_TO_KEEP_OPEN ? postApiData<string>(page, endpoints.checkResearch) : Promise.resolve<string | undefined>(undefined);
+    const [demandUpdateResponse, checkResearchResponse] = await Promise.all([demandUpdatePromise, researchPromise]);
 
-    // Process plants
+    // Process api data
     const { plants, storagePlantCount, storagePlantOutputs } = processPlants(userData.plants);
-
-    // Process energy grids & storages
     const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
-
-    // Hydrogen Silo data
     const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
-
-    // Research data
-    let research;
-    if (researchSlots > 0) {
-      try {
-        const checkResearchResponse = await postApiData<string>(page, checkResearchEndpoint);
-        research = parseResearchEndpoint(checkResearchResponse, userMoney);
-      } catch (error) {
-        console.warn("Failed to fetch research data:", error);
-        research = { availableResearchStations: 0, researchData: [] };
-      }
-    } else {
-      research = { availableResearchStations: 0, researchData: [] };
-    }
-
-    // Vessel data
+    const research = parseResearchEndpoint(checkResearchResponse, userMoney, researchSlots);
     const vessels = extractVesselInfo(userData.vessel);
 
     return {
-      plants: plants,
+      plants,
       energyGrids,
       emissionPerKwh: userData.userData.emissionPerKwh ?? 0,
       co2Value: co2Data.at(-1) ?? 0,
@@ -79,8 +65,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       userMoney,
       hydrogen: {
         hydrogenPrice: hydrogenData.at(-1) ?? 0,
-        hydrogenSiloHolding: hydrogenSiloHolding,
-        hydrogenSiloCapacity: hydrogenSiloCapacity,
+        hydrogenSiloHolding,
+        hydrogenSiloCapacity,
       },
       research,
       vessels
@@ -238,7 +224,12 @@ function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hyd
   };
 }
 
-function parseResearchEndpoint(html: string, accountBalance: number): GameSessionData['research'] {
+function parseResearchEndpoint(html: string | undefined, accountBalance: number, researchSlots: number): GameSessionData['research'] {
+
+  if (!html || researchSlots <= RESEARCH_SLOTS_TO_KEEP_OPEN) {
+    return { availableResearchStations: 0, researchData: [] };
+  }
+
   const $ = cheerio.load(html);
 
   // Extract Research Station Count

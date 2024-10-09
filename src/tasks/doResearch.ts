@@ -77,6 +77,7 @@ export async function doResearch(page: Page, data: GameSessionData): Promise<num
 
 const priorityConfig = {
   priorityList: [182, 181, 3, 1], // High Priority IDs
+  vesselResearchIds: [22, 23, 24, 25], // Vessel-Related Research IDs
   oilResearchIds: [26, 12, 14],    // Oil-Related Research IDs
   stockResearchIds: [5, 6, 7, 8],  // Stock-Related Research IDs
 };
@@ -85,32 +86,29 @@ function getOrderedResearchList(data: GameSessionData): ResearchInfo[] {
   const { researchData } = data.research;
   const plants = data.plants;
   const hasOilPlants = plants.some((plant) => plant.plantType === "fossil");
+  const hasVessels = data.vessels.length > 0;
 
-  const { priorityList, oilResearchIds, stockResearchIds } = priorityConfig;
+  const { priorityList, vesselResearchIds, oilResearchIds, stockResearchIds } = priorityConfig;
 
   // Define priority groups
-  const priorityGroups: { group: number; ids: number[] }[] = [
+  const priorityGroups: { group: number; ids: number[]; condition?: boolean }[] = [
     { group: 1, ids: priorityList },
-    { group: 2, ids: oilResearchIds },
-    { group: 4, ids: stockResearchIds }, // Lower priority
+    { group: 2, ids: vesselResearchIds, condition: hasVessels },
+    { group: 3, ids: oilResearchIds, condition: hasOilPlants },
+    { group: 5, ids: stockResearchIds }, // Lower priority
   ];
 
-  const DEFAULT_GROUP = 3; // Medium priority
+  const DEFAULT_GROUP = 4; // Medium priority
 
   // Assign priority group to each research item
   const prioritizedResearch = researchData.map((research) => {
     let assignedGroup = DEFAULT_GROUP;
 
     for (const group of priorityGroups) {
-      if (group.ids.includes(research.id)) {
+      if (group.ids.includes(research.id) && (group.condition === undefined || group.condition)) {
         assignedGroup = group.group;
         break;
       }
-    }
-
-    // If the user doesn't have oil plants, demote oil-related researches
-    if (!hasOilPlants && oilResearchIds.includes(research.id)) {
-      assignedGroup = DEFAULT_GROUP;
     }
 
     return { ...research, priorityGroup: assignedGroup };

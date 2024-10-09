@@ -321,6 +321,7 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
     const isOperating = vessel.operation && vessel.operation[vesselId];
 
     let status: VesselStatus = VesselStatus.Anchored;
+    let oilOnboard = parseInt(vesselData.oilOnboard) || 0;
 
     if (isEnroute) {
       status = VesselStatus.Enroute;
@@ -336,8 +337,14 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
         status = VesselStatus.Scanning;
       } else if (drillEndTime > currentTime) {
         status = VesselStatus.Drilling;
+      }
+    }
+
+    if (!isEnroute && !isOperating) {
+      if (oilOnboard > 0) {
+        status = VesselStatus.AnchoredWithOil;
       } else {
-        status = VesselStatus.DrillingFinished;
+        status = VesselStatus.Anchored;
       }
     }
 
@@ -348,7 +355,8 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
       id: vesselData.id,
       locLat: parsedLocLat,
       locLon: parsedLocLon,
-      status
+      status,
+      oilOnboard
     });
   }
 

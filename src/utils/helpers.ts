@@ -19,6 +19,10 @@ export function formatEnergy(kWh: number): string {
   return `${value.toLocaleString('en-GB', { maximumFractionDigits: 2 })} ${unit}`;
 }
 
+export function formatNumber(num: number): string {
+  return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
 
 export const parseValueToTonnes = (text: string): number => {
   const match = text.match(/([\d,.]+)\s*(kg|t)/i);

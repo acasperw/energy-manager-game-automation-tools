@@ -36,7 +36,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let storeHydrogen = false;
   let didResearch = 0;
 
-  console.log('\n\n--------- Session summary report --------');
+  const currentTime = new Date().toLocaleString();
+  console.log(`\n\n-------- Session summary report -------- ${currentTime} --------`);
 
   if (decisions.buyCo2Quotas) {
     co2QuotasBought = await buyC02Quotas(page, data);

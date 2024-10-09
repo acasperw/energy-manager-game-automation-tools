@@ -154,7 +154,18 @@ export interface VesselInteractionReport {
   vesselName: string;
   previousStatus: VesselStatus;
   newStatus: VesselStatus;
-  actionTaken: string; // Description of what was done
+  action: string; // Description of what was done
   oilOnboard?: number; // Optional field to track the amount of oil if applicable
-  destination?: VesselDestinationInfo; // Optional destination details if relevant
+  destination?: VesselDestinationInfo | null; // Optional destination details if relevant
+}
+
+export interface DrillHistoryEntry {
+  lat: number;
+  lon: number;
+  radius: number; // in meters
+}
+
+export interface ScanPoint {
+  lat: number;
+  lon: number;
 }

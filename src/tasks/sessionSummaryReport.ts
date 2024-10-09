@@ -1,7 +1,7 @@
 import { CO2_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
-import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport } from "../types/interface";
+import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport, VesselStatus } from "../types/interface";
 import { displayAverageFactors, extractFactorsPerGrid, updateFactorsSummary } from "../utils/data-storage";
-import { formatCurrency, formatEnergy } from "../utils/helpers";
+import { formatCurrency, formatEnergy, formatNumber } from "../utils/helpers";
 
 export async function sessionSummaryReport(
   data: GameSessionData,
@@ -95,9 +95,9 @@ export async function sessionSummaryReport(
   }
 
   if (vesselInteractionsReport.length > 0) {
-    console.log('\nVessels:');
+    console.log('\nVessel Activities:');
     vesselInteractionsReport.forEach(report => {
-      console.log(`Vessel ${report.vesselName}: ${report.actionTaken}. Was ${report.previousStatus} now ${report.newStatus}. ${report.destination?.name ? `Destination: ${report.destination.name}` : ''}`);
+      console.log(generateVesselReport(report));
     });
   }
 
@@ -118,11 +118,45 @@ export async function sessionSummaryReport(
     });
 
     await displayAverageFactors('cloudCover');
-
     await displayAverageFactors('output');
-
     await displayAverageFactors('windspeed');
   }
 
 }
 
+function generateVesselReport(report: VesselInteractionReport): string {
+  const parts = [
+    `Vessel ${report.vesselName}:`,
+    generateStatusChangeInfo(report),
+    report.action,
+    generateOilInfo(report),
+    generateDestinationInfo(report)
+  ];
+
+  return parts.filter(Boolean).join(' ');
+}
+
+function generateStatusChangeInfo(report: VesselInteractionReport): string {
+  return report.previousStatus !== report.newStatus
+    ? `Status changed from ${report.previousStatus} to ${report.newStatus}.`
+    : `Status remained ${report.newStatus}.`;
+}
+
+function generateOilInfo(report: VesselInteractionReport): string {
+  if (!report.oilOnboard) return '';
+
+  const oilAmount = formatNumber(report.oilOnboard);
+  return report.newStatus === VesselStatus.InPortWithOil
+    ? `Ready to unload ${oilAmount} barrels of oil.`
+    : `Oil on board: ${oilAmount} barrels.`;
+}
+
+function generateDestinationInfo(report: VesselInteractionReport): string {
+  if (!report.destination) return '';
+
+  let info = `Destination: ${report.destination.name}`;
+  if (report.destination.distance) {
+    info += ` (${formatNumber(report.destination.distance)} nautical miles away)`;
+  }
+  return info;
+}

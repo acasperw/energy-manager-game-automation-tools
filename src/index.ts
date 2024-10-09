@@ -14,6 +14,7 @@ import { delay, withRetry } from './utils/helpers';
 import { refuelEnableStoragesPlants } from './tasks/refuelEnableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
 import { doResearch } from './tasks/doResearch';
+import { vesselInteractions } from './tasks/vessels';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page): Promise<{
   energySalesInfo: EnergySalesProcess,
@@ -69,6 +70,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     didResearch = await doResearch(page, data);
   }
 
+  const vesselInteractionsReport = await vesselInteractions(page, data);
+
   await sessionSummaryReport(
     data,
     decisions,
@@ -80,7 +83,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     oilBought,
     uraniumBought,
     storeHydrogen,
-    didResearch
+    didResearch,
+    vesselInteractionsReport
   );
 
   // Return the results for further processing

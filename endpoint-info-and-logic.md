@@ -22,3 +22,24 @@ POST - HTML (Action)
 /vessel-depart.php?vesselId=15634&destination=1&speed=16
 
 Port > Enroute > Oilfield - begin scan > Scanning >(found oil, full) > Drilling > enroute > Port 
+
+// Sell / transfer oil
+
+Transfer 
+POST - HTML 
+(amount in bbl - 1,000 bbl = 100,000 kg )
+/commodities-sell.php?mode=do&type=transfer&amount=2472
+
+Sell
+/commodities-sell.php?mode=do&type=sell&amount=2049
+
+
+// Hack
+
+if exists
+<div id="hackOverlay">
+  <div id="hack-terminal" class="terminal-prompt"></div>
+  <div id="hack-terminal-content" class="terminal-prompt"></div>
+</div>
+
+if #hack-countdown exists

@@ -319,6 +319,7 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
   for (const [vesselId, vesselData] of Object.entries(vessel.data)) {
     const isEnroute = vessel.enroute && vessel.enroute[vesselId];
     const isOperating = vessel.operation && vessel.operation[vesselId];
+    const fieldLoc = parseInt(vesselData.fieldLoc) || 0;
 
     let status: VesselStatus = VesselStatus.Anchored;
     let oilOnboard = parseInt(vesselData.oilOnboard) || 0;
@@ -342,9 +343,17 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
 
     if (!isEnroute && !isOperating) {
       if (oilOnboard > 0) {
-        status = VesselStatus.AnchoredWithOil;
+        if (fieldLoc === 0) {
+          status = VesselStatus.InPortWithOil;
+        } else {
+          status = VesselStatus.AnchoredWithOil;
+        }
       } else {
-        status = VesselStatus.Anchored;
+        if (fieldLoc === 0) {
+          status = VesselStatus.InPort;
+        } else {
+          status = VesselStatus.Anchored;
+        }
       }
     }
 
@@ -356,7 +365,10 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
       locLat: parsedLocLat,
       locLon: parsedLocLon,
       status,
-      oilOnboard
+      oilOnboard,
+      vesselName: vesselData.vesselName,
+      routeId: vesselData.routeId,
+      reverse: vesselData.reverse === '1'
     });
   }
 

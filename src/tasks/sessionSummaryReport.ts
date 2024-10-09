@@ -1,5 +1,5 @@
 import { CO2_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
-import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from "../types/interface";
+import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport } from "../types/interface";
 import { displayAverageFactors, extractFactorsPerGrid, updateFactorsSummary } from "../utils/data-storage";
 import { formatCurrency, formatEnergy } from "../utils/helpers";
 
@@ -14,7 +14,8 @@ export async function sessionSummaryReport(
   oilBought: number,
   uraniumBought: number,
   storeHydrogen: boolean,
-  didResearch: number
+  didResearch: number,
+  vesselInteractionsReport: VesselInteractionReport[]
 ) {
 
   // Save plant factors to file
@@ -92,6 +93,14 @@ export async function sessionSummaryReport(
     console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
     console.log(`Energy output: ${formatEnergy(reenabledSolarPlants.kwEnergyBefore)} -> ${formatEnergy(reenabledSolarPlants.kwEnergyAfter)}`);
   }
+
+  if (vesselInteractionsReport.length > 0) {
+    console.log('\nVessels:');
+    vesselInteractionsReport.forEach(report => {
+      console.log(`Vessel ${report.vesselName}: ${report.actionTaken}. Was ${report.previousStatus} now ${report.newStatus}. ${report.destination?.name ? `Destination: ${report.destination.name}` : ''}`);
+    });
+  }
+
   console.log('\n');
 
   if (ENHANCED_REPORTING) {

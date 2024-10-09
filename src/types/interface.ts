@@ -118,12 +118,13 @@ export interface RefuelEnableStoragesPlantsResult {
 
 // Vessels
 export enum VesselStatus {
-  Anchored = 'Anchored',
-  AnchoredWithOil = 'AnchoredWithOil',
+  InPort = 'InPort',
+  InPortWithOil = 'InPortWithOil',       // Represents vessels in port with oil onboard
   Enroute = 'Enroute',
   Scanning = 'Scanning',
   Drilling = 'Drilling',
-  InPort = 'InPort'
+  Anchored = 'Anchored',
+  AnchoredWithOil = 'AnchoredWithOil'    // Represents vessels anchored with oil onboard
 }
 
 export interface VesselInfo {
@@ -132,4 +133,28 @@ export interface VesselInfo {
   locLon: number;
   status: VesselStatus;
   oilOnboard: number;
+  vesselName: string;
+  routeId: string;
+  reverse: boolean; // true = Is on the way back to port, false = Is on the way to the destination
+}
+
+export interface VesselDestinationInfo {
+  id: string;
+  name: string;
+  distance: number; // Distance to the destination in nautical miles
+}
+
+export interface ProcessedVesselStatus {
+  ports: VesselDestinationInfo[];
+  maxSpeed: number | null;
+}
+
+export interface VesselInteractionReport {
+  vesselId: string;
+  vesselName: string;
+  previousStatus: VesselStatus;
+  newStatus: VesselStatus;
+  actionTaken: string; // Description of what was done
+  oilOnboard?: number; // Optional field to track the amount of oil if applicable
+  destination?: VesselDestinationInfo; // Optional destination details if relevant
 }

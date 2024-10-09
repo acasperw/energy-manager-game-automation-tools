@@ -5,7 +5,6 @@ import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 
 import * as cheerio from 'cheerio';
 
-
 /**
  * Sends the vessel to the closest oil field port based on distance.
  * @param page Puppeteer Page instance
@@ -13,7 +12,6 @@ import * as cheerio from 'cheerio';
  */
 export async function goToOilField(page: Page, vesselData: VesselInfo): Promise<VesselDestinationInfo> {
 
-  // Fetch vessel status HTML
   const vesselStatusHtml = await postApiData<string>(page, `/status-vessel.php?id=${vesselData.id}`);
   const { ports, maxSpeed } = processVesselStatus(vesselStatusHtml);
 
@@ -68,6 +66,6 @@ function processVesselStatus(html: string): ProcessedVesselStatus {
     ports.push(port);
   });
 
-  const { min, max, value } = getSliderValuesFromString(html);
+  const { max } = getSliderValuesFromString(html);
   return { ports, maxSpeed: max };
 }

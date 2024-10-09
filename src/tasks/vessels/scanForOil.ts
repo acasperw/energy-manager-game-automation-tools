@@ -70,7 +70,9 @@ function parseScanStatusHtml(html: string): { scanArea: { north: number; south: 
 
 function findValidScanPoint(scanArea: { north: number; south: number; east: number; west: number }, drillHistories: DrillHistoryEntry[], maxRadius: number): ScanPoint | null {
   const { north, south, east, west } = scanArea;
-  const gridSize = Math.min((north - south) / 10, (east - west) / 10);
+  const scanRadiusNm = maxRadius / 1852; // Convert meters to nautical miles
+
+  const gridSize = Math.min(scanRadiusNm, Math.min((north - south) / 10, (east - west) / 10));
 
   for (let lat = north; lat >= south; lat -= gridSize) {
     for (let lon = west; lon <= east; lon += gridSize) {

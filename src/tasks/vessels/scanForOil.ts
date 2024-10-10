@@ -6,7 +6,6 @@ import { getDistanceFromLatLonInNm } from "./vessel-helpers";
 
 export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport[]> {
   try {
-    await postApiData<string>(page, `/status-vessel.php?id=${vesselData.id}`); // TODO: Check if this is necessary
     const drillHistories = Object.values(await fetchApiData<Record<string, DrillHistoryEntry>>(page, '/api/drill.history.php'));
     const scanStatusHtml = await postApiData<string>(page, `/status-vessel-operation.php?id=${vesselData.id}`);
     const { scanArea, maxRadius } = parseScanStatusHtml(scanStatusHtml);
@@ -73,11 +72,7 @@ function findValidScanPoint(scanArea: { north: number; south: number; east: numb
   const { north, south, east, west } = scanArea;
   const scanRadiusNm = maxRadius / 1852; // Convert meters to nautical miles
 
-  // Circles are next to each other
-  // const gridSize = Math.min(scanRadiusNm, Math.min((north - south) / 10, (east - west) / 10));
-
-  // Use scan radius as the grid size to allow for adjacent, potentially overlapping scans
-  const gridSize = scanRadiusNm;
+  const gridSize = Math.min(scanRadiusNm, Math.min(Math.abs(north - south) / 10, Math.abs(east - west) / 10));
 
   for (let lat = north; lat >= south; lat -= gridSize) {
     for (let lon = west; lon <= east; lon += gridSize) {
@@ -94,9 +89,7 @@ function findValidScanPoint(scanArea: { north: number; south: number; east: numb
 function isCenterPointWithinDrillHistory(point: ScanPoint, drillHistories: DrillHistoryEntry[]): boolean {
   return drillHistories.some(history => {
     const distance = getDistanceFromLatLonInNm(point.lat, point.lon, history.lat, history.lon);
-    return distance < history.radius / 1852; // Convert meters to nautical miles
-    // Centers are next to each other
-    // return distance <= (history.radius + maxRadius) / 1852; // Convert meters to nautical miles
+    return distance <= history.radius / 1852; // Convert meters to nautical miles
   });
 }
 

@@ -1,7 +1,7 @@
 import { Page } from "puppeteer";
 import { GameSessionData } from "../types/interface";
-import { postApiData } from "../data/collector";
 import { getSliderValuesFromString } from "../utils/browser-data-helpers";
+import { postApiData } from "../utils/api-requests";
 
 async function getCo2QuotasToBuy(page: Page): Promise<number> {
   const response: string = await postApiData(page, '/co2.php');

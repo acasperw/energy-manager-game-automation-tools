@@ -1,8 +1,8 @@
 import { Page } from "puppeteer";
 import { DrillHistoryEntry, ScanPoint, VesselInfo, VesselInteractionReport, VesselStatus } from "../../types/interface";
-import { postApiData, fetchApiData } from "../../data/collector";
 import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 import { getDistanceFromLatLonInNm } from "./vessel-helpers";
+import { fetchApiData, postApiData } from "../../utils/api-requests";
 
 export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport[]> {
   try {

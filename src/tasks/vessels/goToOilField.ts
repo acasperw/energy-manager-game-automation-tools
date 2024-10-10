@@ -1,9 +1,9 @@
 import { Page } from "puppeteer";
 import { ProcessedVesselStatus, VesselDestinationInfo, VesselInfo } from "../../types/interface";
-import { postApiData } from "../../data/collector";
 import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 
 import * as cheerio from 'cheerio';
+import { postApiData } from "../../utils/api-requests";
 
 /**
  * Sends the vessel to the closest oil field port based on distance.

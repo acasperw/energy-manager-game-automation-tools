@@ -5,6 +5,7 @@ import { Plant, ProductionData, UserData, Vessel } from "../types/api";
 import * as cheerio from 'cheerio';
 import { parseValueToTonnes } from "../utils/helpers";
 import { parseCoordinate } from "../utils/grid-utils";
+import { fetchApiData, postApiData, postApiDataJson } from "../utils/api-requests";
 
 export async function fetchGameSessionData(page: Page): Promise<GameSessionData> {
 
@@ -172,27 +173,6 @@ function processEnergyGrids(
   }
 
   return Array.from(gridMap.values());
-}
-
-export async function fetchApiData<T>(page: Page, url: string): Promise<T> {
-  return await page.evaluate(async (url) => {
-    const response = await fetch(url);
-    return await response.json();
-  }, url) as T;
-}
-
-export async function postApiDataJson<T>(page: Page, url: string, data: any): Promise<T> {
-  return await page.evaluate(async (url, data) => {
-    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify(data), });
-    return await response.json();
-  }, url, data) as T;
-}
-
-export async function postApiData<T>(page: Page, url: string): Promise<T> {
-  return await page.evaluate(async (url) => {
-    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', } });
-    return await response.text();
-  }, url) as T;
 }
 
 function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hydrogenSiloCapacity: number } {

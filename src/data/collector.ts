@@ -56,6 +56,12 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     const research = parseResearchEndpoint(checkResearchResponse, userMoney, researchSlots);
     const vessels = extractVesselInfo(userData.vessel);
 
+    // const currentHydrogenStorageCharge = energyGrids.reduce((sum, grid) => {
+    //   return sum + grid.storages.reduce((gridSum, storage) => {
+    //     return storage.type === 'p2x' ? gridSum + storage.currentCharge : gridSum;
+    //   }, 0);
+    // }, 0);
+
     return {
       plants,
       energyGrids,
@@ -68,6 +74,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
         hydrogenPrice: hydrogenData.at(-1) ?? 0,
         hydrogenSiloHolding,
         hydrogenSiloCapacity,
+        currentHydrogenStorageCharge: 0
       },
       research,
       vessels

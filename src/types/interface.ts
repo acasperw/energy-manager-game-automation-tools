@@ -74,6 +74,7 @@ export interface GameSessionData {
     hydrogenPrice: number;
     hydrogenSiloHolding: number;
     hydrogenSiloCapacity: number;
+    currentHydrogenStorageCharge: number;
   };
 
   research: {

@@ -118,7 +118,7 @@ async function openAdvancedTab(page: Page) {
       const buttons = document.querySelectorAll('#main-modal-container button');
       (buttons[1] as HTMLElement).click();
     });
-    await page.waitForSelector('#advanced-tab', { timeout: 5000 }).catch(() => console.log('Advanced tab did not appear'));
+    await page.waitForSelector('#advanced-tab', { timeout: 10000 }).catch(() => console.log('Advanced tab did not appear'));
   }
   await delay(200);
 }

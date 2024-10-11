@@ -26,7 +26,7 @@ export async function closeSidebar(page: Page, sidebarType: SidebarType) {
       await page.waitForFunction((selector) => {
         const pane = document.querySelector(selector) as HTMLElement | null;
         return pane ? window.getComputedStyle(pane).left !== '0px' : true;
-      }, { timeout: 5000 }, paneId);
+      }, { timeout: 10000 }, paneId);
       await delay(400); // Pane animation delay
     }
   } catch (error) {
@@ -52,7 +52,7 @@ export async function ensureSidebarOpen(page: Page, sidebarType: SidebarType, ta
       await page.waitForFunction((selector) => {
         const pane = document.querySelector(selector) as HTMLElement | null;
         return pane ? window.getComputedStyle(pane).left === '0px' : false;
-      }, { timeout: 5000 }, paneId);
+      }, { timeout: 10000 }, paneId);
       await delay(400); // Pane animation delay
     }
     await switchTab(page, sidebarType, tabName);
@@ -79,7 +79,7 @@ export async function switchTab(page: Page, sidebarType: SidebarType, tabName: T
       await page.waitForFunction((selector) => {
         const tab = document.querySelector(selector);
         return tab?.classList.contains('pane-tabs-active') || false;
-      }, { timeout: 5000 }, currentTabSelector);
+      }, { timeout: 10000 }, currentTabSelector);
       await delay(400);
     }
   } catch (error) {

@@ -28,6 +28,8 @@ export interface TaskDecisions {
   storeHydrogen: boolean;
 
   doResearch: boolean;
+
+  vesselRequireAttention: boolean;
 }
 
 export interface StorageInfo {

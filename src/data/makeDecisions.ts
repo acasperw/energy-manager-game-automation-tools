@@ -1,4 +1,4 @@
-import { GameSessionData, TaskDecisions } from "../types/interface";
+import { GameSessionData, TaskDecisions, VesselStatus } from "../types/interface";
 import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, RESEARCH_BUDGET_PERCENTAGE, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
 import { filterGridsByStorageType, isGridChargeAboveThreshold } from "../utils/grid-utils";
 
@@ -17,6 +17,8 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   let storeHydrogen = false;
 
   let doResearch = false;
+
+  let vesselRequireAttention = false;
 
   // Power grids (excluding p2x storages)
   const nonP2xGrids = filterGridsByStorageType(data.energyGrids, 'non-p2x');
@@ -92,6 +94,9 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     doResearch = true;
   }
 
+  // Vessels
+  vesselRequireAttention = data.vessels.some(vessel => vessel.status !== VesselStatus.Enroute && vessel.status !== VesselStatus.Scanning && vessel.status !== VesselStatus.Drilling);
+
   return {
     sellEnergy,
     sellHydrogen,
@@ -107,6 +112,8 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
 
     storeHydrogen,
 
-    doResearch
+    doResearch,
+
+    vesselRequireAttention,
   };
 }

@@ -1,5 +1,5 @@
 import { gracefulShutdown, scheduleJob } from 'node-schedule';
-import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions } from './types/interface';
+import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport } from './types/interface';
 import { Page } from 'puppeteer';
 import { closeBrowser, initializeBrowser, loginToEnergyManager } from './automation/browser';
 import { fetchGameSessionData } from './data/collector';
@@ -35,6 +35,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let uraniumBought = 0;
   let storeHydrogen = false;
   let didResearch = 0;
+  let vesselInteractionsReport: VesselInteractionReport[] = [];
 
   const currentTime = new Date().toLocaleString();
   console.log(`\n\n-------- Session summary report -------- ${currentTime} --------`);
@@ -71,7 +72,9 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     didResearch = await doResearch(page, data);
   }
 
-  const vesselInteractionsReport = await vesselInteractions(page, data);
+  if (decisions.vesselRequireAttention) {
+    vesselInteractionsReport = await vesselInteractions(page, data);
+  }
 
   await sessionSummaryReport(
     data,

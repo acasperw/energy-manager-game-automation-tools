@@ -44,6 +44,11 @@ export const parseValueToTonnes = (text: string): number => {
   return value;
 };
 
+export function hydrogenFormatToTonnes(value: number): number {
+  let hydrogenKg = value / 33;
+  return hydrogenKg / 1000;
+}
+
 
 // Puppeteer helpers
 export function delay(ms: number): Promise<void> {

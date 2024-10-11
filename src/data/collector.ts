@@ -3,7 +3,7 @@ import { GameSessionData, GridStorage, ResearchInfo, StorageInfo, VesselInfo, Ve
 import { BASE_URL, RESEARCH_SLOTS_TO_KEEP_OPEN } from "../config";
 import { Plant, ProductionData, UserData, Vessel } from "../types/api";
 import * as cheerio from 'cheerio';
-import { parseValueToTonnes } from "../utils/helpers";
+import { hydrogenFormatToTonnes, parseValueToTonnes } from "../utils/helpers";
 import { parseCoordinate } from "../utils/grid-utils";
 import { fetchApiData, postApiData, postApiDataJson } from "../utils/api-requests";
 
@@ -52,15 +52,14 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     // Process api data
     const { plants, storagePlantCount, storagePlantOutputs } = processPlants(userData.plants);
     const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
-    const { hydrogenSiloHolding, hydrogenSiloCapacity } = parseHydrogenSiloData(hydrogenExchangeResponse);
     const research = parseResearchEndpoint(checkResearchResponse, userMoney, researchSlots);
     const vessels = extractVesselInfo(userData.vessel);
 
-    // const currentHydrogenStorageCharge = energyGrids.reduce((sum, grid) => {
-    //   return sum + grid.storages.reduce((gridSum, storage) => {
-    //     return storage.type === 'p2x' ? gridSum + storage.currentCharge : gridSum;
-    //   }, 0);
-    // }, 0);
+    // Hydrogen
+    const { hydrogenSiloHolding, hydrogenSiloCapacity, p2xStorageIds, currentHydrogenStorageCharge } = parseHydrogenData(hydrogenExchangeResponse, energyGrids, productionData);
+    const currentHydrogenPrice = hydrogenData.at(-1) ?? 0;
+    const hydrogenSellValue = Math.floor(currentHydrogenStorageCharge * currentHydrogenPrice * 1000);
+    const hydrogenSiloSellValue = Math.floor(hydrogenSiloHolding * currentHydrogenPrice * 1000);
 
     return {
       plants,
@@ -71,10 +70,13 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       uraniumPrice: uraniumPriceData.at(-1) ?? 0,
       userMoney,
       hydrogen: {
-        hydrogenPrice: hydrogenData.at(-1) ?? 0,
+        hydrogenPrice: currentHydrogenPrice,
         hydrogenSiloHolding,
         hydrogenSiloCapacity,
-        currentHydrogenStorageCharge: 0
+        currentHydrogenStorageCharge,
+        p2xStorageIds,
+        sellValue: hydrogenSellValue,
+        siloSellValue: hydrogenSiloSellValue
       },
       research,
       vessels
@@ -182,7 +184,7 @@ function processEnergyGrids(
   return Array.from(gridMap.values());
 }
 
-function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hydrogenSiloCapacity: number } {
+function parseHydrogenData(html: string, energyGrids: GridStorage[], productionData: ProductionData): { hydrogenSiloHolding: number; hydrogenSiloCapacity: number; p2xStorageIds: string[]; currentHydrogenStorageCharge: number } {
   const $ = cheerio.load(html);
 
   // Extract Hydrogen Silo Holding
@@ -205,9 +207,21 @@ function parseHydrogenSiloData(html: string): { hydrogenSiloHolding: number; hyd
     console.warn("Hydrogen silo capacity element not found.");
   }
 
+  // Calculate current hydrogen storage charge
+  const hydrogenStorageCharge = energyGrids.reduce((sum, grid) => {
+    return sum + grid.storages.reduce((gridSum, storage) => {
+      return storage.type === 'p2x' ? gridSum + storage.currentCharge : gridSum;
+    }, 0);
+  }, 0);
+  const currentHydrogenStorageCharge = hydrogenFormatToTonnes(hydrogenStorageCharge);
+
+  const p2xStorageIds = Object.entries(productionData).filter(([_, storage]) => storage.type === 'p2x').map(([id, _]) => id);
+
   return {
     hydrogenSiloHolding: isNaN(hydrogenSiloHolding) ? 0 : hydrogenSiloHolding,
     hydrogenSiloCapacity: isNaN(hydrogenSiloCapacity) ? 0 : hydrogenSiloCapacity,
+    p2xStorageIds,
+    currentHydrogenStorageCharge
   };
 }
 

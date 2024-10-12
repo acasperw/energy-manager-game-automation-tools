@@ -14,7 +14,7 @@
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2",
     "node-schedule": "^2.1.1",
-    "puppeteer": "^23.5.2",
+    "puppeteer": "^23.5.3",
     "sunrise-sunset-js": "^2.2.1"
   },
   "devDependencies": {
@@ -22,6 +22,6 @@
     "@types/node": "^20.16.10",
     "@types/node-schedule": "^2.1.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   }
 }

@@ -1,16 +1,6 @@
 import { Plant } from "./api";
 
-export type TabName =
-  | 'plants'
-  | 'storage'
-  | 'pending'
-  | 'vessel-port'
-  | 'vessel-active';
-
-export enum SidebarType {
-  Production = 'production',
-  Vessel = 'vessel',
-}
+export type tabName = 'plants' | 'storage';
 
 export interface TaskDecisions {
   sellEnergy: boolean;

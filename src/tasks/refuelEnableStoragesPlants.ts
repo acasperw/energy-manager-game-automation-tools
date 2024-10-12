@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { RefuelEnableStoragesPlantsResult, GameSessionData, SidebarType } from "../types/interface";
+import { RefuelEnableStoragesPlantsResult, GameSessionData } from "../types/interface";
 import { ensureSidebarOpen, switchTab } from "../automation/interactions";
 import { clickElement, ifElementExists } from "../automation/helpers";
 import { captureScreenshot } from "../automation/browser";
@@ -32,7 +32,7 @@ export async function refuelEnableStoragesPlants(page: Page, data: GameSessionDa
   };
 
   try {
-    await ensureSidebarOpen(page, SidebarType.Production, 'plants');
+    await ensureSidebarOpen(page, 'plants');
     await page.waitForSelector('#production-plants-container', { visible: true });
 
     const refuelResult = await reFuelPlants(page, data);
@@ -150,7 +150,7 @@ async function reFuelPlants(page: Page, data: GameSessionData): Promise<{ didRef
   let pctRefueled = 0;
 
   try {
-    await switchTab(page, SidebarType.Production, 'plants');
+    await switchTab(page, 'plants');
 
     // We only can refuel fuel-based plants that are offline
     const offlineFuelPlants = data.plants.filter(plant => FUEL_BASED_PLANTS.includes(plant.plantType) && !plant.online);

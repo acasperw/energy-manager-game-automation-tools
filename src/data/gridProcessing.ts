@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { EnergySalesInfo, GridStorage, SidebarType } from "../types/interface";
+import { EnergySalesInfo, GridStorage } from "../types/interface";
 import { closeMainModal, ensureSidebarOpen, hideSalesResultPopup, waitForMainModal } from "../automation/interactions";
 import { delay } from "../utils/helpers";
 import { captureScreenshot } from "../automation/browser";
@@ -11,7 +11,7 @@ import { clickElement } from "../automation/helpers";
 
 export async function processEnergyGrid(page: Page, currentGrid: GridStorage, eligibleGrids: GridStorage[]): Promise<EnergySalesInfo> {
   await hideSalesResultPopup(page);
-  await ensureSidebarOpen(page, SidebarType.Production, 'storage');
+  await ensureSidebarOpen(page, 'storage');
 
   const gridClickable = await clickGridAndWaitForDetails(page, currentGrid);
   if (!gridClickable) {

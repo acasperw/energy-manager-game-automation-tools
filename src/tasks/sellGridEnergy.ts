@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { EnergySalesProcess, GameSessionData, SidebarType } from "../types/interface";
+import { EnergySalesProcess, GameSessionData } from "../types/interface";
 import { ensureSidebarOpen } from "../automation/interactions";
 import { processEnergyGrid } from "../data/gridProcessing";
 import { STORAGE_CHARGE_THRESHOLD_MIN } from "../config";
@@ -16,7 +16,7 @@ export async function sellGridEnergy(page: Page, data: GameSessionData): Promise
   // All grids that could be sold to
   const eligibleGrids = getAllEligibleEnergyGridsWeCanSellTo(data.energyGrids);
 
-  await ensureSidebarOpen(page, SidebarType.Production, 'storage');
+  await ensureSidebarOpen(page, 'storage');
 
   for (const grid of salesEligibleGrids) {
     const result = await processEnergyGrid(page, grid, eligibleGrids);

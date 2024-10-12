@@ -1,5 +1,5 @@
 import { GameSessionData, TaskDecisions, VesselStatus } from "../types/interface";
-import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, RESEARCH_BUDGET_PERCENTAGE, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, HYDROGEN_SUPER_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, RESEARCH_BUDGET_PERCENTAGE, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
 import { filterGridsByStorageType, isGridChargeAboveThreshold } from "../utils/grid-utils";
 
 export function makeDecisions(data: GameSessionData): TaskDecisions {
@@ -27,11 +27,11 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   }
 
   // Hydrogen grids
-  if (data.hydrogen.hydrogenPrice >= HYDROGEN_PRICE_THRESHOLD_MIN) {
+  if (data.hydrogen.hydrogenPrice >= HYDROGEN_PRICE_THRESHOLD_MIN || data.hydrogen.hydrogenPrice >= HYDROGEN_SUPER_PRICE_THRESHOLD_MIN) {
 
     // Main hydrogen
     const p2xGrids = filterGridsByStorageType(data.energyGrids, 'p2x');
-    if (p2xGrids.some(grid => isGridChargeAboveThreshold(grid, 'p2x', STORAGE_CHARGE_THRESHOLD_MIN))) {
+    if (p2xGrids.some(grid => isGridChargeAboveThreshold(grid, 'p2x', STORAGE_CHARGE_THRESHOLD_MIN)) || data.hydrogen.hydrogenPrice >= HYDROGEN_SUPER_PRICE_THRESHOLD_MIN) {
       sellHydrogen = true;
     }
 

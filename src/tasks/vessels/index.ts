@@ -2,6 +2,7 @@ import { Page } from "puppeteer";
 import { GameSessionData, VesselInteractionReport, VesselStatus } from "../../types/interface";
 import { goToOilField } from "./goToOilField";
 import { scanForOil } from "./scanForOil"; // Import the scanForOil function
+import { goToPortOrNextField } from "./goToPortOrNextField";
 
 export async function vesselInteractions(page: Page, data: GameSessionData): Promise<VesselInteractionReport[]> {
 
@@ -22,7 +23,10 @@ export async function vesselInteractions(page: Page, data: GameSessionData): Pro
       }
 
       if (vessel.status === VesselStatus.AnchoredWithOil) {
-        // await goToPortOrNextField(page, vessel);
+        // TODO: CHECK WHAT HAPPENS IF THE SHIP IS NOT FULLY LOADED
+        //
+        // const destination = await goToPortOrNextField(page, vessel);
+        // vesselReports.push({ vesselId: vessel.id, vesselName: vessel.vesselName, previousStatus: vessel.status, newStatus: VesselStatus.Enroute, action: 'Sent to port', destination });
       }
 
       if (vessel.status === VesselStatus.InPortWithOil) {

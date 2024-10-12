@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { VesselDestinationInfo, VesselInfo } from "../../types/interface";
+import { VesselInfo, VesselDestinationInfo } from "../../types/interface";
 import { postApiData } from "../../utils/api-requests";
 import { processVesselStatus } from "./vessel-helpers";
 
@@ -8,10 +8,12 @@ import { processVesselStatus } from "./vessel-helpers";
  * @param page Puppeteer Page instance
  * @param vesselData Information about the vessel
  */
-export async function goToOilField(page: Page, vesselData: VesselInfo): Promise<VesselDestinationInfo> {
+export async function goToPortOrNextField(page: Page, vesselData: VesselInfo): Promise<VesselDestinationInfo> {
 
   const vesselStatusHtml = await postApiData<string>(page, `/status-vessel.php?id=${vesselData.id}`);
   const { ports, maxSpeed } = processVesselStatus(vesselStatusHtml);
+
+  // TODO: CHECK WHAT HAPPENS IF THE SHIP IS NOT FULLY LOADED
 
   if (ports.length === 0) {
     console.error(`No ports found for vessel ${vesselData.id}`);

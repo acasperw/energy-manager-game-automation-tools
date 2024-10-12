@@ -15,6 +15,7 @@ export const SCREENSHOTS_DIR = 'screenshots';
 export const STORAGE_CHARGE_THRESHOLD_MIN = 80; // Threshold for storage charge to sell at
 export const HYDROGEN_PRICE_THRESHOLD_MIN = 92; // Minimum price to sell hydrogen at
 export const HYDROGEN_SUPER_PRICE_THRESHOLD_MIN = 106; // Always sell hydrogen above this price
+export const OIL_SELL_PRICE_THRESHOLD_MIN = 550; // Minimum price to sell oil at
 
 export const pctOfMaxPrice_other_grid_THRESHOLD_MIN = 80; // Percentage of max price an alternative grid must have to be eligible to be sold to
 

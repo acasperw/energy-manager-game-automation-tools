@@ -3,11 +3,12 @@ import { GameSessionData, VesselInteractionReport, VesselStatus } from "../../ty
 import { goToOilField } from "./goToOilField";
 import { scanForOil } from "./scanForOil"; // Import the scanForOil function
 import { goToPortOrNextField } from "./goToPortOrNextField";
+import { unloadOilAndTransferOrSell } from "./unloadOilAndTransferOrSell";
 
-export async function vesselInteractions(page: Page, data: GameSessionData): Promise<VesselInteractionReport[]> {
+export async function vesselInteractions(page: Page, gameData: GameSessionData): Promise<VesselInteractionReport[]> {
 
   const vesselReports: VesselInteractionReport[] = [];
-  const vesselsNeedingAction = data.vessels.filter(vessel => vessel.status !== VesselStatus.Enroute && vessel.status !== VesselStatus.Scanning && vessel.status !== VesselStatus.Drilling);
+  const vesselsNeedingAction = gameData.vessels.filter(vessel => vessel.status !== VesselStatus.Enroute && vessel.status !== VesselStatus.Scanning && vessel.status !== VesselStatus.Drilling);
 
   for (const vessel of vesselsNeedingAction) {
     try {
@@ -30,7 +31,11 @@ export async function vesselInteractions(page: Page, data: GameSessionData): Pro
       }
 
       if (vessel.status === VesselStatus.InPortWithOil) {
-        // await unloadOil(page, vessel);
+        await unloadOilAndTransferOrSell(page, vessel, gameData);
+
+        // Then send on to oil field
+        const destination = await goToOilField(page, vessel);
+        vesselReports.push({ vesselId: vessel.id, vesselName: vessel.vesselName, previousStatus: vessel.status, newStatus: VesselStatus.Enroute, action: 'Sent to oil field', destination: destination });
       }
 
     } catch (error) {

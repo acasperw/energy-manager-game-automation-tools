@@ -153,6 +153,7 @@ export interface VesselInteractionReport {
   action: string; // Description of what was done
   oilOnboard?: number; // Optional field to track the amount of oil if applicable
   destination?: VesselDestinationInfo | null; // Optional destination details if relevant
+  soldValue?: number | null;
 }
 
 export interface DrillHistoryEntry {

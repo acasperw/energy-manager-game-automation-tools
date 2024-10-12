@@ -1,4 +1,4 @@
-import { CO2_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, OIL_SELL_PRICE_THRESHOLD_MIN } from "../config";
 import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport, VesselStatus } from "../types/interface";
 import { displayAverageFactors, extractFactorsPerGrid, updateFactorsSummary } from "../utils/data-storage";
 import { formatCurrency, formatEnergy, formatNumber } from "../utils/helpers";
@@ -99,6 +99,11 @@ export async function sessionSummaryReport(
     vesselInteractionsReport.forEach(report => {
       console.log(generateVesselReport(report));
     });
+
+    const oilSalesSummary = generateOilSalesSummary(vesselInteractionsReport, data.oilBuyPrice);
+    if (oilSalesSummary) {
+      console.log('\n' + oilSalesSummary);
+    }
   }
 
   console.log('\n');
@@ -130,10 +135,23 @@ function generateVesselReport(report: VesselInteractionReport): string {
     generateStatusChangeInfo(report),
     report.action,
     generateOilInfo(report),
-    generateDestinationInfo(report)
+    generateDestinationInfo(report),
   ];
 
   return parts.filter(Boolean).join(' ');
+}
+
+function generateOilSalesSummary(reports: VesselInteractionReport[], currentOilPrice: number): string | null {
+  const oilSaleReport = reports.find(report => report.action === 'Sold oil' && report.soldValue !== undefined);
+
+  if (oilSaleReport && oilSaleReport.oilOnboard !== undefined && oilSaleReport.soldValue !== undefined && oilSaleReport.soldValue !== null) {
+    return `Oil Sales Summary:
+Total oil sold: ${formatNumber(oilSaleReport.oilOnboard)} barrels
+Total value: ${formatCurrency(oilSaleReport.soldValue)}
+Current oil sell price: ${formatCurrency(currentOilPrice * 100)} per barrel (Threshold: ${formatCurrency(OIL_SELL_PRICE_THRESHOLD_MIN)})`;
+  }
+
+  return null;
 }
 
 function generateStatusChangeInfo(report: VesselInteractionReport): string {

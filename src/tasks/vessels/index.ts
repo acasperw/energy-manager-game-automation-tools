@@ -31,11 +31,14 @@ export async function vesselInteractions(page: Page, gameData: GameSessionData):
       }
 
       if (vessel.status === VesselStatus.InPortWithOil) {
-        await unloadOilAndTransferOrSell(page, vessel, gameData);
+        const result = await unloadOilAndTransferOrSell(page, vessel, gameData);
+        vesselReports.push(result);
 
-        // Then send on to oil field
-        const destination = await goToOilField(page, vessel);
-        vesselReports.push({ vesselId: vessel.id, vesselName: vessel.vesselName, previousStatus: vessel.status, newStatus: VesselStatus.Enroute, action: 'Sent to oil field', destination: destination });
+        // Then send on to oil field if not full
+        if (vessel.oilOnboard === 0) {
+          const destination = await goToOilField(page, vessel);
+          vesselReports.push({ vesselId: vessel.id, vesselName: vessel.vesselName, previousStatus: vessel.status, newStatus: VesselStatus.Enroute, action: 'Sent to oil field', destination });
+        }
       }
 
     } catch (error) {

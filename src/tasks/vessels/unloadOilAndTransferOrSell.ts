@@ -5,7 +5,6 @@ import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 import { OIL_SELL_PRICE_THRESHOLD_MIN } from "../../config";
 
 export async function unloadOilAndTransferOrSell(page: Page, vesselData: VesselInfo, gameData: GameSessionData): Promise<VesselInteractionReport> {
-
   const vesselInteractionReport: VesselInteractionReport = {
     vesselId: vesselData.id,
     vesselName: vesselData.vesselName,
@@ -13,7 +12,8 @@ export async function unloadOilAndTransferOrSell(page: Page, vesselData: VesselI
     newStatus: VesselStatus.InPort,
     action: 'Unload oil and transfer or sell',
     destination: null,
-    soldValue: null
+    soldValue: null,
+    oilOnboard: vesselData.oilOnboard
   };
 
   const oilSellPrice = gameData.oilBuyPrice * 100; // Price per bbl
@@ -25,23 +25,27 @@ export async function unloadOilAndTransferOrSell(page: Page, vesselData: VesselI
   const { bblOnShips, bblCapacity } = parseCommoditiesSellHtml(commoditiesSellHtml);
 
   if (oilSellPrice > OIL_SELL_PRICE_THRESHOLD_MIN) {
+    // Sell all oil on ships
     await postApiData<string>(page, `commodities-sell.php?mode=do&type=sell&amount=${bblOnShips}`);
     vesselInteractionReport.soldValue = oilSellPrice * bblOnShips * 100;
     vesselInteractionReport.action = 'Sold oil';
   } else {
-    await postApiData<string>(page, `commodities-sell.php?mode=do&type=transfer&amount=${bblOnShips}`);
+    // Transfer oil, but only up to the available capacity
+    const transferAmount = Math.min(bblOnShips, bblCapacity);
+    await postApiData<string>(page, `commodities-sell.php?mode=do&type=transfer&amount=${transferAmount}`);
     vesselInteractionReport.action = 'Transferred oil';
+    if (transferAmount < bblOnShips) {
+      vesselInteractionReport.action += ` (${bblOnShips - transferAmount} barrels remaining on ship due to capacity limit)`;
+    }
   }
 
   return vesselInteractionReport;
 }
 
-
-function parseCommoditiesSellHtml(html: string): { bblOnShips: number; bblCapacity: number | null } {
-
+function parseCommoditiesSellHtml(html: string): { bblOnShips: number; bblCapacity: number } {
   const bblCapacityRegex = /bblCapacity\s*=\s*(\d+)/;
   const bblCapacityMatch = html.match(bblCapacityRegex);
-  const bblCapacity = parseInt(bblCapacityMatch![1], 10);
+  const bblCapacity = bblCapacityMatch ? parseInt(bblCapacityMatch[1], 10) : 0;
 
   const bblOnShips = getSliderValuesFromString(html).max;
   return { bblOnShips, bblCapacity };

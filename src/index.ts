@@ -105,7 +105,30 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   };
 }
 
-export async function mainTask() {
+const HYDROGEN_RERUN_DELAY = 120000; // 2 minutes in milliseconds
+const MAX_HYDROGEN_RERUNS = 1; // Maximum number of consecutive hydrogen-related reruns
+
+function scheduleRerun(rerunTime: number, reason: string, currentRerunCount: number) {
+  const delay = rerunTime - Date.now();
+  console.log(`Scheduling rerun in ${delay / 1000} seconds. Reason: ${reason}`);
+  scheduleJob(new Date(rerunTime), () => {
+    mainTask(reason === "Hydrogen activity" ? currentRerunCount + 1 : 0).catch(error => {
+      console.error(`Failed to execute scheduled mainTask (${reason}):`, error);
+    });
+  });
+}
+
+async function handleTaskExecution(page: Page, data: GameSessionData): Promise<boolean> {
+  const decisions: TaskDecisions = makeDecisions(data);
+  const results = await executeTasks(decisions, data, page);
+  if (results.hydrogenSalesTotal.includingSilo || results.storeHydrogen) {
+    console.log(`\nHydrogen silo ${results.hydrogenSalesTotal.includingSilo ? 'sale' : 'transfer'} detected.`);
+    return true;
+  }
+  return false;
+}
+
+export async function mainTask(currentRerunCount: number = 0) {
   let page: Page | null = null;
   await withRetry(async () => {
     console.time('Session');
@@ -116,30 +139,18 @@ export async function mainTask() {
       let data = await fetchGameSessionData(page);
       if (data.userIsUnderHack) {
         await handleHackScenario(page);
-        data = await fetchGameSessionData(page); // Refetch game data after handling hack scenario
-      }
-      let decisions: TaskDecisions = makeDecisions(data);
-      let results = await executeTasks(decisions, data, page);
-
-      // Check if a rerun is scheduled
-      if (data.rerunTime && data.rerunTime > Date.now()) {
-        const delay = data.rerunTime - Date.now();
-        console.log(`Scheduling rerun in ${delay / 1000} seconds`);
-        scheduleJob(new Date(data.rerunTime), () => {
-          mainTask().catch(error => {
-            console.error('Failed to execute scheduled mainTask:', error);
-          });
-        });
-      }
-
-      // If a hydrogen silo sale or transfer was detected, wait for 2 mins before re-executing tasks to allow continuation of storage
-      if (results.hydrogenSalesTotal.includingSilo || results.storeHydrogen) {
-        console.log(`\nHydrogen silo ${results.hydrogenSalesTotal.includingSilo ? 'sale' : 'transfer'} detected. Waiting for 2 mins before re-executing tasks.\n`);
-        await delay(120000);
         data = await fetchGameSessionData(page);
-        decisions = makeDecisions(data);
-        await executeTasks(decisions, data, page);
       }
+
+      // Execute tasks and handle reruns if necessary
+      const requiresHydrogenRerun = await handleTaskExecution(page, data);
+      if (data.rerunTime && data.rerunTime > Date.now()) {
+        scheduleRerun(data.rerunTime, "Scheduled rerun", 0);
+      } else if (requiresHydrogenRerun && currentRerunCount < MAX_HYDROGEN_RERUNS) {
+        const rerunTime = Date.now() + HYDROGEN_RERUN_DELAY;
+        scheduleRerun(rerunTime, "Hydrogen activity", currentRerunCount);
+      }
+
     } finally {
       if (page) {
         await page.close();

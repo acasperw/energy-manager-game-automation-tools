@@ -291,12 +291,10 @@ function parseResearchEndpoint(html: string | undefined, accountBalance: number,
     if (!buttonId) {
       return;
     }
-
     const idMatch = buttonId.match(/research-button-(\d+)/);
     if (!idMatch || idMatch.length < 2) {
       return;
     }
-
     const id = parseInt(idMatch[1]);
     if (isNaN(id)) {
       return;
@@ -308,7 +306,6 @@ function parseResearchEndpoint(html: string | undefined, accountBalance: number,
     if (!priceMatch || priceMatch.length < 2) {
       return;
     }
-
     const price = parseInt(priceMatch[1].replace(/,/g, ''));
     if (isNaN(price)) {
       return;

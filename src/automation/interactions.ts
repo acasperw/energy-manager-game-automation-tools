@@ -16,7 +16,7 @@ export async function ensureSidebarOpen(page: Page, tabName: tabName = 'storage'
     if (isSidebarClosed) {
       await page.click('#pane-close-helper');
       await page.waitForSelector('#pane-close-helper span.glyphicons-chevron-left');
-      await delay(350);
+      await delay(400);
     }
     await switchTab(page, tabName);
   } catch (error) {
@@ -30,7 +30,7 @@ export async function switchTab(page: Page, tabName: tabName) {
   if (!validTabs.includes(tabName)) {
     throw new Error(`Invalid tab name. Must be one of: ${validTabs.join(', ')}`);
   }
-  await delay(350);
+  await delay(400);
   const tabSelector = `#pane-${tabName}`;
   const isActive = await page.evaluate((selector) => {
     const tab = document.querySelector(selector);

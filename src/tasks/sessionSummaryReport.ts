@@ -18,9 +18,9 @@ export async function sessionSummaryReport(
   vesselInteractionsReport: VesselInteractionReport[]
 ) {
 
-  // Save plant factors to file
-  const factorsPerGrid: Record<string, Record<string, number>> = extractFactorsPerGrid(data);
-  await updateFactorsSummary(factorsPerGrid);
+  // // Save plant factors to file
+  // const factorsPerGrid: Record<string, Record<string, number>> = extractFactorsPerGrid(data);
+  // await updateFactorsSummary(factorsPerGrid);
 
   if (didResearch > 0) {
     console.log(`\nResearch: ${didResearch} research items were started.`);
@@ -108,24 +108,24 @@ export async function sessionSummaryReport(
 
   console.log('\n');
 
-  if (ENHANCED_REPORTING) {
+  // if (ENHANCED_REPORTING) {
 
-    // Top storage capacities
-    const topStorages = data.energyGrids.filter(grid => grid.storages.some(storage => storage.plantsConnected > 0)).map(grid => {
-      return {
-        gridName: grid.gridName,
-        totalCapacity: grid.totalCapacity
-      };
-    }).sort((a, b) => b.totalCapacity - a.totalCapacity);
-    console.log('Top Storage Capacities:');
-    topStorages.forEach(storage => {
-      console.log(`${storage.gridName}: ${formatEnergy(storage.totalCapacity)}`);
-    });
+  //   // Top storage capacities
+  //   const topStorages = data.energyGrids.filter(grid => grid.storages.some(storage => storage.plantsConnected > 0)).map(grid => {
+  //     return {
+  //       gridName: grid.gridName,
+  //       totalCapacity: grid.totalCapacity
+  //     };
+  //   }).sort((a, b) => b.totalCapacity - a.totalCapacity);
+  //   console.log('Top Storage Capacities:');
+  //   topStorages.forEach(storage => {
+  //     console.log(`${storage.gridName}: ${formatEnergy(storage.totalCapacity)}`);
+  //   });
 
-    await displayAverageFactors('cloudCover');
-    await displayAverageFactors('output');
-    await displayAverageFactors('windspeed');
-  }
+  //   await displayAverageFactors('cloudCover');
+  //   await displayAverageFactors('output');
+  //   await displayAverageFactors('windspeed');
+  // }
 
 }
 

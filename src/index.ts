@@ -15,6 +15,7 @@ import { refuelEnableStoragesPlants } from './tasks/refuelEnableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
 import { doResearch } from './tasks/doResearch';
 import { vesselInteractions } from './tasks/vessels';
+import { handleHackScenario } from './tasks/handleHackScenario';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page): Promise<{
   energySalesInfo: EnergySalesProcess,
@@ -113,6 +114,10 @@ export async function mainTask() {
       page = newPage;
       await loginToEnergyManager(page);
       let data = await fetchGameSessionData(page);
+      if (data.userIsUnderHack) {
+        await handleHackScenario(page);
+        data = await fetchGameSessionData(page); // Refetch game data after handling hack scenario
+      }
       let decisions: TaskDecisions = makeDecisions(data);
       let results = await executeTasks(decisions, data, page);
 

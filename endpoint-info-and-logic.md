@@ -36,10 +36,5 @@ Sell
 
 // Hack
 
-if exists
-<div id="hackOverlay">
-  <div id="hack-terminal" class="terminal-prompt"></div>
-  <div id="hack-terminal-content" class="terminal-prompt"></div>
-</div>
-
-if #hack-countdown exists
+if display block`<div id="hackOverlay" style="display: block;">`
+if `#hack-countdown` exists ?

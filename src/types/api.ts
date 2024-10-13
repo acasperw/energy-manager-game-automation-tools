@@ -5,6 +5,7 @@ export interface UserData {
     emissionPerKwh: number;
     account: string; // Available money
     researchSlots: number;
+    systemStatus: number;
   };
   plants: {
     [key: string]: Plant;
@@ -28,7 +29,7 @@ export interface Plant {
   lat: number;
   lon: number;
   online: 0 | 1;
-  plantType: 'wind' | 'solar' | 'fossil';
+  plantType: 'wind' | 'solar' | 'fossil' | 'nuclear';
   storageId: number;
   output: number;
   capacity: number;

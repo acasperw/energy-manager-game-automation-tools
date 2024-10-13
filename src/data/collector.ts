@@ -69,6 +69,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
       uraniumPrice: uraniumPriceData.at(-1) ?? 0,
       userMoney,
+      userIsUnderHack: userData.userData.systemStatus > 0,
       hydrogen: {
         hydrogenPrice: currentHydrogenPrice,
         hydrogenSiloHolding,

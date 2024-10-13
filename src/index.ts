@@ -121,6 +121,17 @@ export async function mainTask() {
       let decisions: TaskDecisions = makeDecisions(data);
       let results = await executeTasks(decisions, data, page);
 
+      // Check if a rerun is scheduled
+      if (data.rerunTime && data.rerunTime > Date.now()) {
+        const delay = data.rerunTime - Date.now();
+        console.log(`Scheduling rerun in ${delay / 1000} seconds`);
+        scheduleJob(new Date(data.rerunTime), () => {
+          mainTask().catch(error => {
+            console.error('Failed to execute scheduled mainTask:', error);
+          });
+        });
+      }
+
       // If a hydrogen silo sale or transfer was detected, wait for 2 mins before re-executing tasks to allow continuation of storage
       if (results.hydrogenSalesTotal.includingSilo || results.storeHydrogen) {
         console.log(`\nHydrogen silo ${results.hydrogenSalesTotal.includingSilo ? 'sale' : 'transfer'} detected. Waiting for 2 mins before re-executing tasks.\n`);

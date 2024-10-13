@@ -12,7 +12,5 @@ module.exports = {
   env: {
     node: true,
   },
-  rules: {
-    // Add any specific rules here
-  },
+  rules: {},
 };

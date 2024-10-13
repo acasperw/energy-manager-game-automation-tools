@@ -77,6 +77,8 @@ export interface GameSessionData {
   };
 
   vessels: VesselInfo[];
+
+  rerunTime?: number;
 }
 
 export interface EnergySalesProcess {
@@ -133,6 +135,7 @@ export interface VesselInfo {
   vesselName: string;
   routeId: string;
   reverse: boolean; // true = Is on the way back to port, false = Is on the way to the destination
+  arrivalTime: number | null;
 }
 
 export interface VesselDestinationInfo {

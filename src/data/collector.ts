@@ -40,6 +40,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       postApiData<string>(page, endpoints.hydrogenExchange),
     ]);
 
+    let rerunTime: number | undefined;
+
     const researchSlots = userData.userData.researchSlots;
     const userMoney = parseFloat(userData.userData.account);
 
@@ -53,7 +55,17 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     const { plants, storagePlantCount, storagePlantOutputs } = processPlants(userData.plants);
     const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
     const research = parseResearchEndpoint(checkResearchResponse, userMoney, researchSlots);
+
+    // Vessels
     const vessels = extractVesselInfo(userData.vessel);
+    const arrivingVessels = vessels.filter(vessel =>
+      vessel.status === VesselStatus.Enroute &&
+      vessel.arrivalTime !== null &&
+      vessel.arrivalTime <= Date.now() + 3600000 // Within the next hour
+    );
+    if (arrivingVessels.length > 0) {
+      rerunTime = Math.min(...arrivingVessels.map(v => v.arrivalTime!));
+    }
 
     // Hydrogen
     const { hydrogenSiloHolding, hydrogenSiloCapacity, p2xStorageIds, currentHydrogenStorageCharge } = parseHydrogenData(hydrogenExchangeResponse, energyGrids, productionData);
@@ -80,7 +92,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
         siloSellValue: hydrogenSiloSellValue
       },
       research,
-      vessels
+      vessels,
+      rerunTime
     };
   } catch (error) {
     console.error("Failed to fetch game session data:", error);
@@ -325,9 +338,11 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
 
     let status: VesselStatus = VesselStatus.Anchored;
     let oilOnboard = parseInt(vesselData.oilOnboard) || 0;
+    let arrivalTime: number | null = null;
 
     if (isEnroute) {
       status = VesselStatus.Enroute;
+      arrivalTime = parseInt(vessel.enroute![vesselId].arrived);
     }
 
     if (isOperating) {
@@ -370,7 +385,8 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
       oilOnboard,
       vesselName: vesselData.vesselName,
       routeId: vesselData.routeId,
-      reverse: vesselData.reverse === '1'
+      reverse: vesselData.reverse === '1',
+      arrivalTime
     });
   }
 

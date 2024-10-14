@@ -1,4 +1,4 @@
-import { CO2_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, OIL_SELL_PRICE_THRESHOLD_MIN } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, COAL_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, OIL_SELL_PRICE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
 import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport, VesselStatus } from "../types/interface";
 import { displayAverageFactors, extractFactorsPerGrid, updateFactorsSummary } from "../utils/data-storage";
 import { formatCurrency, formatEnergy, formatNumber } from "../utils/helpers";
@@ -11,8 +11,7 @@ export async function sessionSummaryReport(
   co2QuotasBought: number,
   enabledPlants: RefuelEnableStoragesPlantsResult,
   reenabledSolarPlants: ReEnablePlantsResult,
-  oilBought: number,
-  uraniumBought: number,
+  commoditiesBought: Record<string, number>,
   storeHydrogen: boolean,
   didResearch: number,
   vesselInteractionsReport: VesselInteractionReport[]
@@ -59,9 +58,20 @@ export async function sessionSummaryReport(
     }
   }
 
-  if (decisions.buyOil && oilBought > 0) {
-    console.log('\nOil:');
-    console.log(`Oil bought for ${formatCurrency(data.oilBuyPricePerKg)} (Threshold: ${formatCurrency(OIL_PRICE_THRESHOLD_MAX)}): ${oilBought.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`);
+  if (decisions.buyCommodities) {
+    console.log('\nCommodities purchased:');
+
+    const commodities = [
+      { name: 'Oil', amount: commoditiesBought.oil, price: data.oilBuyPricePerKg, threshold: OIL_PRICE_THRESHOLD_MAX },
+      { name: 'Coal', amount: commoditiesBought.coal, price: data.coalPricePerKg, threshold: COAL_PRICE_THRESHOLD_MAX },
+      { name: 'Uranium', amount: commoditiesBought.uranium, price: data.uraniumPricePerKg, threshold: URANIUM_PRICE_THRESHOLD_MAX }
+    ];
+
+    commodities.forEach(commodity => {
+      if (commodity.amount > 0) {
+        console.log(`${commodity.name} bought for ${formatCurrency(commodity.price)} (Threshold: ${formatCurrency(commodity.threshold)}): ${commodity.amount.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`);
+      }
+    });
   }
 
   const highWearPlants = data.plants.filter(plant => plant.wear! > 80);

@@ -1,5 +1,5 @@
 import { GameSessionData, TaskDecisions, VesselStatus } from "../types/interface";
-import { CO2_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, HYDROGEN_SUPER_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, RESEARCH_BUDGET_PERCENTAGE, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, COAL_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, HYDROGEN_SUPER_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, RESEARCH_BUDGET_PERCENTAGE, STORAGE_CHARGE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
 import { filterGridsByStorageType, isGridChargeAboveThreshold } from "../utils/grid-utils";
 
 export function makeDecisions(data: GameSessionData): TaskDecisions {
@@ -11,9 +11,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   let enableStoragesPlants = false;
 
   let buyCo2Quotas = false;
-  let buyOil = false;
-  let buyUranium = false;
-  let buyCoal = false;
+  let buyCommodities = false;
 
   let storeHydrogen = false;
 
@@ -71,14 +69,13 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     buyCo2Quotas = true;
   }
 
-  // Oil
-  if (data.oilBuyPricePerKg < OIL_PRICE_THRESHOLD_MAX) {
-    buyOil = true;
-  }
-
-  // Uranium
-  if (data.uraniumPricePerKg < URANIUM_PRICE_THRESHOLD_MAX) {
-    buyUranium = true;
+  // Oil, Uranium, Coal commodities
+  if (
+    data.oilBuyPricePerKg < OIL_PRICE_THRESHOLD_MAX ||
+    data.coalPricePerKg < COAL_PRICE_THRESHOLD_MAX ||
+    data.uraniumPricePerKg < URANIUM_PRICE_THRESHOLD_MAX
+  ) {
+    buyCommodities = true;
   }
 
   if (data.hydrogen.hydrogenSiloHolding < data.hydrogen.hydrogenSiloCapacity) {
@@ -108,9 +105,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     solarPlantsToReenable,
 
     buyCo2Quotas,
-    buyOil,
-    buyUranium,
-    buyCoal,
+    buyCommodities,
 
     storeHydrogen,
 

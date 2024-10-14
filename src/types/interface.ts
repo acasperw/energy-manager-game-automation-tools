@@ -12,9 +12,7 @@ export interface TaskDecisions {
   solarPlantsToReenable: string[];
 
   buyCo2Quotas: boolean;
-  buyOil: boolean;
-  buyUranium: boolean;
-  buyCoal: boolean;
+  buyCommodities: boolean; // Buy any of oil, uranium, or coal
 
   storeHydrogen: boolean;
 

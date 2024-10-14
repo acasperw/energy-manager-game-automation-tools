@@ -9,13 +9,13 @@ import { sellGridHydrogen } from './tasks/sellGridHydrogen'
 import { sessionSummaryReport } from './tasks/sessionSummaryReport';
 import { buyC02Quotas } from './tasks/buyC02Quotas';
 import { reEnableSolarPlants } from './tasks/reEnableSolarPlants';
-import { buyOil } from './tasks/buyOil';
 import { withRetry } from './utils/helpers';
 import { refuelEnableStoragesPlants } from './tasks/refuelEnableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
 import { doResearch } from './tasks/doResearch';
 import { vesselInteractions } from './tasks/vessels';
 import { handleHackScenario } from './tasks/handleHackScenario';
+import { buyCommodities } from './tasks/buyCommodities';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page): Promise<{
   energySalesInfo: EnergySalesProcess,
@@ -23,8 +23,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   enabledPlants: RefuelEnableStoragesPlantsResult,
   reenabledSolarPlants: ReEnablePlantsResult,
   co2QuotasBought: number,
-  oilBought: number,
-  uraniumBought: number,
+  commoditiesBought: Record<string, number>,
   storeHydrogen: boolean
 }> {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
@@ -32,8 +31,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let enabledPlants: RefuelEnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0, didRefuel: false, pctRefueled: 0, totalDisabled: 0 };
   let reenabledSolarPlants: ReEnablePlantsResult = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   let co2QuotasBought = 0;
-  let oilBought = 0;
-  let uraniumBought = 0;
+  let commoditiesBought: Record<string, number> = {};
   let storeHydrogen = false;
   let didResearch = 0;
   let vesselInteractionsReport: VesselInteractionReport[] = [];
@@ -45,8 +43,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     co2QuotasBought = await buyC02Quotas(page, data);
   }
 
-  if (decisions.buyOil) {
-    oilBought = await buyOil(page, data);
+  if (decisions.buyCommodities) {
+    commoditiesBought = await buyCommodities(page, data);
   }
 
   if (decisions.sellEnergy) {
@@ -85,8 +83,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     co2QuotasBought,
     enabledPlants,
     reenabledSolarPlants,
-    oilBought,
-    uraniumBought,
+    commoditiesBought,
     storeHydrogen,
     didResearch,
     vesselInteractionsReport
@@ -99,8 +96,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     enabledPlants,
     reenabledSolarPlants,
     co2QuotasBought,
-    oilBought,
-    uraniumBought,
+    commoditiesBought,
     storeHydrogen
   };
 }
@@ -110,7 +106,7 @@ const MAX_HYDROGEN_RERUNS = 1; // Maximum number of consecutive hydrogen-related
 
 function scheduleRerun(rerunTime: number, reason: string, currentRerunCount: number) {
   const delay = rerunTime - Date.now();
-  console.log(`Scheduling rerun in ${delay / 1000} seconds. Reason: ${reason}`);
+  console.log(`Scheduling rerun in ${delay / 1000} seconds. Reason: ${reason}\n`);
   scheduleJob(new Date(rerunTime), () => {
     mainTask(reason === "Hydrogen activity" ? currentRerunCount + 1 : 0).catch(error => {
       console.error(`Failed to execute scheduled mainTask (${reason}):`, error);

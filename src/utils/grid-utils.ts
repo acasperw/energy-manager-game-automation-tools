@@ -9,8 +9,9 @@ export function filterGridsByStorageType(grids: GridStorage[], storageType: 'p2x
   );
 }
 
+// && storage.plantsConnected > 0 - Filter for only storages connected to plants, but dosnt account for full grids where plants have been moved to another storage temporarily
 export function calculateGridChargePercentage(grid: GridStorage, storageType: 'p2x' | 'non-p2x'): number {
-  const relevantStorages = grid.storages.filter(storage => (storageType === 'p2x' ? storage.type === 'p2x' : storage.type !== 'p2x') && storage.plantsConnected > 0);
+  const relevantStorages = grid.storages.filter(storage => (storageType === 'p2x' ? storage.type === 'p2x' : storage.type !== 'p2x'));
   const totalCharge = relevantStorages.reduce((sum, storage) => sum + storage.currentCharge, 0);
   const totalCapacity = relevantStorages.reduce((sum, storage) => sum + storage.capacity, 0);
 

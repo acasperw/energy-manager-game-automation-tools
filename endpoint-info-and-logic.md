@@ -40,7 +40,7 @@ if display block`<div id="hackOverlay" style="display: block;">`
 if `#hack-countdown` exists ?
 
 
-// Enable / disable plant
+// Enable / disable plant (Wind / Solar) -------------------------------------
 
 // If on, will turn off
 // If off, will turn on
@@ -49,15 +49,30 @@ if `#hack-countdown` exists ?
 
 /status-plant-set.php?id=8338862
 
+// Enable / Disable Fossil/Nuclear/Coal -------------------------------------
 
-// Re-enable entire storage (and attached plants)
+// Where 10299181 is the long plant id, target is KW (eg, 1.5 GW) or via max
+
+/status-plant-set-fossil.php?id=10299181&target=0
+/status-plant-set-fossil.php?id=10299181&target=1500000
+/status-plant-set-fossil.php?id=10299181&paneTarget=max
+
+
+// Shutdown (if on, will go off, and vice versa)
+/status-plant-set-fossil.php?id=9820384&paneTarget=max
+then
+/api/production.stop.php?id=9820384
+
+
+// Re-enable entire storage (and attached plants) (started from storage)
 
 // where 10521184 is the storage id (not available during hack)
 
 /production-plants-state.php?mode=online&targetUnit=10521184
+/production-plants-state.php?mode=online&targetUnit=11639330
 
 
-/// Energy Grids
+/// Energy Grids -------------------------------------
 
 // Get storage status (eg, upcoming mwh value)
 // where 10521184 is the storage id
@@ -129,3 +144,35 @@ hideUnitDetails();
 stopGridLine(8338460);stopPlant(8338460,'solar');plantOutput[8338460] = 0;stopGridLine(8338862);stopPlant(8338862,'solar');plantOutput[8338862] = 0;stopGridLine(8343346);stopPlant(8343346,'solar');plantOutput[8343346] = 0;stopGridLine(8390836);stopPlant(8390836,'solar');plantOutput[8390836] = 0;stopGridLine(9475050);stopPlant(9475050,'fossil');plantOutput[9475050] = 0;stopGridLine(9846710);stopPlant(9846710,'fossil');plantOutput[9846710] = 0;setStorageMarkerState(10521075,'grid');gridDischarge[10521075] = 1114;delete productionChargeRates[10521075];startDischarging(10521075,1728861716,1728862830,1728861716);setChargeComplete(10521075,0);liveData[10521075].chargePerSec = 0;liveData[10521075].charged = 434807;gridSales.push({"grid": "DE-25", "sold": 927032, "income": 2714584, "halfAlert": 1});changeNumber('headerAccount',2,2700875);$('#charge-status-50948').html('0 kW<span class=text-lowercase>h</span>').data('value', 0);				showSalesResult(gridSales,false,13709,0);
 setIntro(12);
 </script>
+
+
+// Buy Uranium --------------------------------------------------------------------
+/api/commodities/buy.php?type=uranium&amount=2646
+
+
+// Connection / reconnection / Disconnection  -------------------------------------
+
+/disconnect-plant.php?plantId=10299181
+
+/connect-storage.php?plantId=10299181&storageId=11327596
+
+// Recoonect script start?
+id, location, location, distance
+startStorageConnection(10299181,45.061881623213,7.4652099609375,200,0,48788);
+
+// Check if we can connect to storage
+
+/api/storage.php?id=11639330&plantLat=45.061881623213&landId=48788&plantLon=7.4652099609375&plantId=10299181
+JSON response, 
+{
+    "distance": 105,
+    "land": 48427,
+    "plantsConnected": 0,
+    "lat": 44.67255939212,
+    "lon": 6.26220703125,
+    "capacity": 10000000,
+    "maxConnections": 10
+}
+
+/connect-storage.php?plantId=10299181&storageId=11639330
+

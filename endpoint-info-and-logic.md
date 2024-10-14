@@ -176,3 +176,9 @@ JSON response,
 
 /connect-storage.php?plantId=10299181&storageId=11639330
 
+
+// Refuel nuclear, fossil and coal
+
+Check for fillable percentage, per type
+/fuel-management.php?type=oil
+/fuel-management.php?type=uranium

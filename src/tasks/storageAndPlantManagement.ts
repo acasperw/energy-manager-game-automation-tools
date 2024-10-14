@@ -1,10 +1,18 @@
 import { Page } from "puppeteer";
 import { GameSessionData, StorageAndPlantManagementResult, TaskDecisions } from "../types/interface";
 import { Plant } from "../types/api";
+import { postApiData } from "../utils/api-requests";
+import { getSliderValuesFromString } from "../utils/browser-data-helpers";
+import { capitalize } from "../utils/helpers";
 
 const FUEL_BASED_PLANTS = ['fossil', 'nuclear', 'coal'];
+const FUEL_TYPE_MAP = {
+  'fossil': 'oil',
+  'nuclear': 'uranium',
+  'coal': 'coal'
+};
 
-async function storageAndPlantManagement(page: Page, data: GameSessionData, decisions: TaskDecisions): Promise<StorageAndPlantManagementResult> {
+export async function storageAndPlantManagement(page: Page, data: GameSessionData, decisions: TaskDecisions): Promise<StorageAndPlantManagementResult> {
 
   const result: StorageAndPlantManagementResult = {
     totalEnabled: 0,
@@ -41,14 +49,37 @@ async function storageAndPlantManagement(page: Page, data: GameSessionData, deci
     await reEnableSolarPlants(page, data, decisions, result);
   } catch (error) {
     console.error('Error in storageAndPlantManagement:', error);
-    // Handle error (e.g., take screenshot)
   }
 
   return result;
 }
 
 async function refuelPlants(page: Page, data: GameSessionData, result: StorageAndPlantManagementResult): Promise<void> {
-  // Implement refueling logic here
+  const offlineFuelPlants = data.plants.filter(plant => FUEL_BASED_PLANTS.includes(plant.plantType) && !plant.online);
+  for (const fuelType of FUEL_BASED_PLANTS) {
+    const plantsOfType = offlineFuelPlants.filter(plant => plant.plantType === fuelType);
+    if (plantsOfType.length > 0) {
+      await refuelPlantType(page, fuelType, result);
+    }
+  }
+}
+
+async function refuelPlantType(page: Page, plantType: string, result: StorageAndPlantManagementResult): Promise<void> {
+  const fuelType = FUEL_TYPE_MAP[plantType as keyof typeof FUEL_TYPE_MAP];
+
+  try {
+    const checkResponse: string = await postApiData(page, `/fuel-management.php?type=${fuelType}`);
+    const { value, max } = getSliderValuesFromString(checkResponse);
+
+    if (max > 0 && value! < max) {
+      await postApiData(page, `/fuel-management.php?mode=do&pct=${value}&type=${fuelType}`);
+      result.refueled[`didRefuel${capitalize(plantType)}` as 'didRefuelOil' | 'didRefuelNuclear' | 'didRefuelCoal'] = true;
+      result.refueled[`pctRefueled${capitalize(plantType)}` as 'pctRefueledOil' | 'pctRefueledNuclear' | 'pctRefueledCoal'] = value!;
+    }
+  } catch (error) {
+    console.error(`Error refueling ${plantType} plants:`, error);
+    result.refueled.totalOutOfFuel += 1;
+  }
 }
 
 async function switchFuelPlantsWithFullStorages(page: Page, data: GameSessionData, result: StorageAndPlantManagementResult): Promise<void> {
@@ -87,5 +118,3 @@ function findAvailableStorage(data: GameSessionData, plant: Plant): Storage | un
 async function switchPlantStorage(page: Page, plant: Plant, newStorage: Storage): Promise<void> {
   // Implement logic to switch plant to new storage
 }
-
-export { storageAndPlantManagement };

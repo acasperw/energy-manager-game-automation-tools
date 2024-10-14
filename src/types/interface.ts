@@ -14,6 +14,7 @@ export interface TaskDecisions {
   buyCo2Quotas: boolean;
   buyOil: boolean;
   buyUranium: boolean;
+  buyCoal: boolean;
 
   storeHydrogen: boolean;
 
@@ -56,13 +57,14 @@ export interface GameSessionData {
   energyGrids: GridStorage[];
   emissionPerKwh: number;
   co2Value: number;
-  oilBuyPrice: number;
-  uraniumPrice: number;
+  oilBuyPricePerKg: number;
+  uraniumPricePerKg: number;
+  coalPricePerKg: number;
   userMoney: number;
   userIsUnderHack: boolean;
 
   hydrogen: {
-    hydrogenPrice: number;
+    hydrogenPricePerKg: number;
     hydrogenSiloHolding: number;
     hydrogenSiloCapacity: number;
     p2xStorageIds: string[];

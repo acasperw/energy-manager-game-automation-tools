@@ -16,7 +16,7 @@ export async function unloadOilAndTransferOrSell(page: Page, vesselData: VesselI
     oilOnboard: vesselData.oilOnboard
   };
 
-  const oilSellPrice = gameData.oilBuyPrice * 100; // Price per bbl
+  const oilSellPricePerBbl = gameData.oilBuyPricePerKg * 100; // Price per bbl
 
   // const commoditiesBuyHtml = await postApiData<string>(page, `/commodities-sell.php`);
   // const { holding, capacity } = parseCommoditiesBuyHtml(commoditiesBuyHtml);
@@ -24,10 +24,10 @@ export async function unloadOilAndTransferOrSell(page: Page, vesselData: VesselI
   const commoditiesSellHtml = await postApiData<string>(page, `/commodities-sell.php`);
   const { bblOnShips, bblCapacity } = parseCommoditiesSellHtml(commoditiesSellHtml);
 
-  if (oilSellPrice > OIL_SELL_PRICE_THRESHOLD_MIN) {
+  if (oilSellPricePerBbl > OIL_SELL_PRICE_THRESHOLD_MIN) {
     // Sell all oil on ships
     await postApiData<string>(page, `commodities-sell.php?mode=do&type=sell&amount=${bblOnShips}`);
-    vesselInteractionReport.soldValue = oilSellPrice * bblOnShips * 100;
+    vesselInteractionReport.soldValue = oilSellPricePerBbl * bblOnShips * 100; // 1 bbl is 100 kg
     vesselInteractionReport.action = 'Sold oil';
   } else {
     // Transfer oil, but only up to the available capacity
@@ -51,8 +51,3 @@ function parseCommoditiesSellHtml(html: string): { bblOnShips: number; bblCapaci
   return { bblOnShips, bblCapacity };
 }
 
-// function parseCommoditiesBuyHtml(html: string): { holding: number | null, capacity: number | null } {
-
-//   // const bblAmount = getSliderValuesFromString(html).max;
-//   return { holding, capacity };
-// }

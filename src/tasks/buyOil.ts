@@ -8,10 +8,12 @@ export async function buyOil(page: Page, data: GameSessionData): Promise<number>
   try {
     const commoditiesBuyOilHtml = await postApiData<string>(page, `/commodities.php?type=oil&hideNavbar=true`);
     const { maxAmountPurchasable } = parseCommoditiesBuyOilHtml(commoditiesBuyOilHtml);
-    const theoreticalMaxAmountPurchasable = Math.floor(data.userMoney / data.oilBuyPrice);
+    const theoreticalMaxAmountPurchasable = Math.floor(data.userMoney / data.oilBuyPricePerKg);
     const oilToBuy = Math.min(maxAmountPurchasable, theoreticalMaxAmountPurchasable);
     if (oilToBuy > 0) {
       await postApiData<string>(page, `/api/commodities/buy.php?type=oil&amount=${oilToBuy}`);
+      const totalCost = oilToBuy * data.oilBuyPricePerKg;
+      data.userMoney -= totalCost;
       return oilToBuy;
     }
     return oilBought;

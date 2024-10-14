@@ -13,6 +13,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   let buyCo2Quotas = false;
   let buyOil = false;
   let buyUranium = false;
+  let buyCoal = false;
 
   let storeHydrogen = false;
 
@@ -27,11 +28,11 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   }
 
   // Hydrogen grids
-  if (data.hydrogen.hydrogenPrice >= HYDROGEN_PRICE_THRESHOLD_MIN || data.hydrogen.hydrogenPrice >= HYDROGEN_SUPER_PRICE_THRESHOLD_MIN) {
+  if (data.hydrogen.hydrogenPricePerKg >= HYDROGEN_PRICE_THRESHOLD_MIN || data.hydrogen.hydrogenPricePerKg >= HYDROGEN_SUPER_PRICE_THRESHOLD_MIN) {
 
     // Main hydrogen
     const p2xGrids = filterGridsByStorageType(data.energyGrids, 'p2x');
-    if (p2xGrids.some(grid => isGridChargeAboveThreshold(grid, 'p2x', STORAGE_CHARGE_THRESHOLD_MIN)) || data.hydrogen.hydrogenPrice >= HYDROGEN_SUPER_PRICE_THRESHOLD_MIN) {
+    if (p2xGrids.some(grid => isGridChargeAboveThreshold(grid, 'p2x', STORAGE_CHARGE_THRESHOLD_MIN)) || data.hydrogen.hydrogenPricePerKg >= HYDROGEN_SUPER_PRICE_THRESHOLD_MIN) {
       sellHydrogen = true;
     }
 
@@ -71,12 +72,12 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   }
 
   // Oil
-  if (data.oilBuyPrice < OIL_PRICE_THRESHOLD_MAX) {
+  if (data.oilBuyPricePerKg < OIL_PRICE_THRESHOLD_MAX) {
     buyOil = true;
   }
 
   // Uranium
-  if (data.uraniumPrice < URANIUM_PRICE_THRESHOLD_MAX) {
+  if (data.uraniumPricePerKg < URANIUM_PRICE_THRESHOLD_MAX) {
     buyUranium = true;
   }
 
@@ -109,6 +110,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     buyCo2Quotas,
     buyOil,
     buyUranium,
+    buyCoal,
 
     storeHydrogen,
 

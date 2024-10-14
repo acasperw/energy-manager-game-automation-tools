@@ -16,6 +16,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     co2Data: `${BASE_URL}/api/price.history.api.php?target=co2`,
     oilBuyPriceData: `${BASE_URL}/api/price.history.api.php?target=oil`,
     uraniumPriceData: `${BASE_URL}/api/price.history.api.php?target=uranium`,
+    coalPriceData: `${BASE_URL}/api/price.history.api.php?target=coal`,
     demandUpdate: `${BASE_URL}/api/demand.update.php`,
     hydrogenExchange: `${BASE_URL}/hydrogen-exchange.php`,
     checkResearch: `${BASE_URL}/research.php`,
@@ -29,6 +30,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       co2Data,
       oilBuyPriceData,
       uraniumPriceData,
+      coalPriceData,
       hydrogenExchangeResponse,
     ] = await Promise.all([
       fetchApiData<UserData>(page, endpoints.userData),
@@ -37,6 +39,7 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       fetchApiData<number[]>(page, endpoints.co2Data),
       fetchApiData<number[]>(page, endpoints.oilBuyPriceData),
       fetchApiData<number[]>(page, endpoints.uraniumPriceData),
+      fetchApiData<number[]>(page, endpoints.coalPriceData),
       postApiData<string>(page, endpoints.hydrogenExchange),
     ]);
 
@@ -78,12 +81,13 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       energyGrids,
       emissionPerKwh: userData.userData.emissionPerKwh ?? 0,
       co2Value: co2Data.at(-1) ?? 0,
-      oilBuyPrice: oilBuyPriceData.at(-1) ?? 0,
-      uraniumPrice: uraniumPriceData.at(-1) ?? 0,
+      oilBuyPricePerKg: oilBuyPriceData.at(-1) ?? 0,
+      uraniumPricePerKg: uraniumPriceData.at(-1) ?? 0,
+      coalPricePerKg: coalPriceData.at(-1) ?? 0,
       userMoney,
       userIsUnderHack: userData.userData.systemStatus > 0,
       hydrogen: {
-        hydrogenPrice: currentHydrogenPrice,
+        hydrogenPricePerKg: currentHydrogenPrice,
         hydrogenSiloHolding,
         hydrogenSiloCapacity,
         currentHydrogenStorageCharge,

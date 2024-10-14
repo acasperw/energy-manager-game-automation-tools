@@ -9,7 +9,7 @@ export async function buyOil(page: Page, data: GameSessionData): Promise<number>
   try {
     const oilToBuy = await calculateOilToBuy(page);
 
-    if (data.userMoney < oilToBuy * data.oilBuyPrice) {
+    if (data.userMoney < oilToBuy * data.oilBuyPricePerKg) {
       console.error('Not enough money to buy Oil');
       return 0;
     }
@@ -21,7 +21,7 @@ export async function buyOil(page: Page, data: GameSessionData): Promise<number>
     }, oilToBuy);
 
     if (response.ok) {
-      data.userMoney -= oilToBuy * data.oilBuyPrice;
+      data.userMoney -= oilToBuy * data.oilBuyPricePerKg;
       return oilToBuy;
     } else {
       console.error(`Failed to buy Oil. Server responded with status: ${response.status}`);

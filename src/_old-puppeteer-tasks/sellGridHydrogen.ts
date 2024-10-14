@@ -20,8 +20,8 @@ export async function sellGridHydrogen(page: Page, data: GameSessionData, decisi
 
     // Sell main hydrogen
     if (decisions.sellHydrogen) {
-      const hydrogenPrice = await getNumericValue(page, '.total-hydrogen-value');
-      if (hydrogenPrice > 0) {
+      const hydrogenPricePerKg = await getNumericValue(page, '.total-hydrogen-value');
+      if (hydrogenPricePerKg > 0) {
         await page.waitForSelector('#main-hydrogen-sell-btn');
         await page.waitForFunction(() => {
           const button = document.querySelector('#main-hydrogen-sell-btn');

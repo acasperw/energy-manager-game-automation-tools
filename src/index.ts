@@ -8,9 +8,9 @@ import { sellGridEnergy } from './tasks/sellGridEnergy';
 import { sellGridHydrogen } from './tasks/sellGridHydrogen'
 import { sessionSummaryReport } from './tasks/sessionSummaryReport';
 import { buyC02Quotas } from './tasks/buyC02Quotas';
-import { reEnableSolarPlants } from './tasks/reEnableSolarPlants';
+import { reEnableSolarPlants } from './_old-puppeteer-tasks/reEnableSolarPlants';
 import { withRetry } from './utils/helpers';
-import { refuelEnableStoragesPlants } from './tasks/refuelEnableStoragesPlants';
+import { refuelEnableStoragesPlants } from './_old-puppeteer-tasks/refuelEnableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
 import { doResearch } from './tasks/doResearch';
 import { vesselInteractions } from './tasks/vessels';

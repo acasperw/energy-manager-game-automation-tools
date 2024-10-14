@@ -100,12 +100,18 @@ export interface HydrogenSalesInfo {
   includingSilo: boolean;
 }
 
+/**
+ * @deprecated since version 2.3
+ */
 export interface ReEnablePlantsResult {
   enabledPlants: number;
   kwEnergyBefore: number;
   kwEnergyAfter: number;
 }
 
+/**
+ * @deprecated since version 2.3
+ */
 export interface RefuelEnableStoragesPlantsResult {
   totalEnabled: number;
   totalSkipped: number;
@@ -113,6 +119,30 @@ export interface RefuelEnableStoragesPlantsResult {
   didRefuel: boolean;
   pctRefueled: number;
   totalDisabled: number;
+}
+
+export interface StorageAndPlantManagementResult {
+  totalEnabled: number;
+  totalDisabled: number;
+  totalSkipped: number;
+  totalSwitched: number;
+
+  refueled: {
+    totalOutOfFuel: number;
+    didRefuelOil: boolean;
+    didRefuelNuclear: boolean;
+    didRefuelCoal: boolean;
+    pctRefueledOil: number;
+    pctRefueledNuclear: number;
+    pctRefueledCoal: number;
+  };
+
+  reEnabledSolarPlants: {
+    enabledPlants: number;
+  };
+
+  kwEnergyBefore: number;
+  kwEnergyAfter: number;
 }
 
 // Vessels

@@ -29,7 +29,7 @@ export interface Plant {
   lat: number;
   lon: number;
   online: 0 | 1;
-  plantType: 'wind' | 'solar' | 'fossil' | 'nuclear';
+  plantType: 'wind' | 'solar' | 'fossil' | 'nuclear' | 'coal';
   storageId: number;
   output: number;
   capacity: number;

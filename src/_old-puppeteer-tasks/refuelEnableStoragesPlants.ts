@@ -12,6 +12,7 @@ const PLANT_TOGGLE_SELECTOR_PREFIX = '#pwr-pane-toggle-';
 const FUEL_BASED_PLANTS = ['fossil', 'uranium'];
 
 /**
+ * @deprecated since version 2.3
  * Refuels and enables/disables storage plants based on storage capacity.
  * Specifically handles fuel-based plants to ensure they are not enabled when storage is full
  * and are disabled if their associated storage is full.

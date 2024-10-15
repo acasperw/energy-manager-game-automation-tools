@@ -72,11 +72,19 @@ export async function sessionSummaryReport(
 
   console.log('\nPlant Management:');
   if (storagePlantManagementResult.totalEnabled > 0 || storagePlantManagementResult.totalDisabled > 0 || storagePlantManagementResult.totalSwitched > 0) {
-    console.log(`Enabled ${storagePlantManagementResult.totalEnabled} plants.`);
-    console.log(`Disabled ${storagePlantManagementResult.totalDisabled} plants.`);
-    console.log(`Switched ${storagePlantManagementResult.totalSwitched} plants to different storages.`);
-    console.log(`Skipped ${storagePlantManagementResult.totalSkipped} plants.`);
 
+    if (storagePlantManagementResult.totalEnabled > 0) {
+      console.log(`Enabled ${storagePlantManagementResult.totalEnabled} plants.`);
+    }
+    if (storagePlantManagementResult.totalDisabled > 0) {
+      console.log(`Disabled ${storagePlantManagementResult.totalDisabled} plants.`);
+    }
+    if (storagePlantManagementResult.totalSwitched > 0) {
+      console.log(`Switched ${storagePlantManagementResult.totalSwitched} plants to different storages.`);
+    }
+    if (storagePlantManagementResult.totalSkipped > 0) {
+      console.log(`Skipped ${storagePlantManagementResult.totalSkipped} plants.`);
+    }
     if (storagePlantManagementResult.totalErrors > 0) {
       console.log(`Encountered ${storagePlantManagementResult.totalErrors} errors during plant management.`);
     }
@@ -100,7 +108,7 @@ export async function sessionSummaryReport(
     console.log(`Re-enabled ${storagePlantManagementResult.reEnabledSolarPlants.enabledPlants} solar plants.`);
   }
 
-  console.log(`Energy output: ${formatEnergy(storagePlantManagementResult.kwEnergyBefore)} -> ${formatEnergy(storagePlantManagementResult.kwEnergyAfter)}`);
+  // console.log(`Energy output: ${formatEnergy(storagePlantManagementResult.kwEnergyBefore)} -> ${formatEnergy(storagePlantManagementResult.kwEnergyAfter)}`);
 
   if (vesselInteractionsReport.length > 0) {
     console.log('\nVessel Activities:');

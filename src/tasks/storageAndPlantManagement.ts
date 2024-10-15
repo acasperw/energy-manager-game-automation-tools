@@ -47,13 +47,13 @@ export async function storageAndPlantManagement(page: Page, data: GameSessionDat
   };
 
   try {
-    result.kwEnergyBefore = await getEnergyOutputAmount(page) ?? 0; // TODO: Move this to some kind of api or calculated value
+    // result.kwEnergyBefore = await getEnergyOutputAmount(page) ?? 0;
     await disableFuelPlantsWithFullStorages(page, data, result);
     await refuelPlants(page, data, result);
     await switchFuelPlantsWithFullStorages(page, data, result);
     await enableOfflinePlants(page, data, result);
-    await reEnableSolarPlants(page, data, decisions, result);
-    result.kwEnergyAfter = await getEnergyOutputAmount(page) ?? 0; // TODO: Move this to some kind of api or calculated value
+    // await reEnableSolarPlants(page, data, decisions, result);
+    // result.kwEnergyAfter = await getEnergyOutputAmount(page) ?? 0;
   } catch (error) {
     console.error('Error in storageAndPlantManagement:', error);
     result.totalErrors++;

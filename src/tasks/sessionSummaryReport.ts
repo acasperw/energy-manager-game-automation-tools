@@ -70,35 +70,37 @@ export async function sessionSummaryReport(
     });
   }
 
-  // const highWearPlants = data.plants.filter(plant => plant.wear! > 80);
-  // if (highWearPlants.length > 0 || enabledPlants.totalEnabled > 0 || (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length)) {
-  //   console.log('\nPlants:');
-  // }
-  // if (highWearPlants.length > 0) {
-  //   console.log('High wear plants:');
-  //   highWearPlants.forEach(plant => {
-  //     const storage = data.energyGrids.find(storage => storage.storages.some(s => s.id === plant.storageId?.toString()));
-  //     if (storage) {
-  //       console.log(`Plant ${plant.plantId} in grid ${storage.gridName} has a wear of ${plant.wear}%`);
-  //     }
-  //   });
-  // }
-  // if (enabledPlants.totalEnabled > 0) {
-  //   console.log(`Enabled ${enabledPlants.totalEnabled} plants${enabledPlants.totalSkipped > 0 ? ` and skipped ${enabledPlants.totalSkipped}` : ''}.`);
-  //   if (enabledPlants.didRefuel) {
-  //     console.log(`Successfully refueled plants to ${enabledPlants.pctRefueled}%`);
-  //   }
-  //   if (enabledPlants.totalOutOfFuel > 0) {
-  //     console.log(`Skipped ${enabledPlants.totalOutOfFuel} plants due to lack of fuel.`);
-  //   }
-  // }
-  // if (enabledPlants.totalDisabled > 0) {
-  //   console.log(`Disabled ${enabledPlants.totalDisabled} plants.`);
-  // }
-  // if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
-  //   console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
-  //   console.log(`Energy output: ${formatEnergy(reenabledSolarPlants.kwEnergyBefore)} -> ${formatEnergy(reenabledSolarPlants.kwEnergyAfter)}`);
-  // }
+  console.log('\nPlant Management:');
+  if (storagePlantManagementResult.totalEnabled > 0 || storagePlantManagementResult.totalDisabled > 0 || storagePlantManagementResult.totalSwitched > 0) {
+    console.log(`Enabled ${storagePlantManagementResult.totalEnabled} plants.`);
+    console.log(`Disabled ${storagePlantManagementResult.totalDisabled} plants.`);
+    console.log(`Switched ${storagePlantManagementResult.totalSwitched} plants to different storages.`);
+    console.log(`Skipped ${storagePlantManagementResult.totalSkipped} plants.`);
+
+    if (storagePlantManagementResult.totalErrors > 0) {
+      console.log(`Encountered ${storagePlantManagementResult.totalErrors} errors during plant management.`);
+    }
+
+    if (storagePlantManagementResult.refueled.didRefuelOil) {
+      console.log(`Refueled oil plants to ${storagePlantManagementResult.refueled.pctRefueledOil}%.`);
+    }
+    if (storagePlantManagementResult.refueled.didRefuelNuclear) {
+      console.log(`Refueled nuclear plants to ${storagePlantManagementResult.refueled.pctRefueledNuclear}%.`);
+    }
+    if (storagePlantManagementResult.refueled.didRefuelCoal) {
+      console.log(`Refueled coal plants to ${storagePlantManagementResult.refueled.pctRefueledCoal}%.`);
+    }
+
+    if (storagePlantManagementResult.refueled.totalOutOfFuel > 0) {
+      console.log(`${storagePlantManagementResult.refueled.totalOutOfFuel} plants were out of fuel.`);
+    }
+  }
+
+  if (storagePlantManagementResult.reEnabledSolarPlants.enabledPlants > 0) {
+    console.log(`Re-enabled ${storagePlantManagementResult.reEnabledSolarPlants.enabledPlants} solar plants.`);
+  }
+
+  console.log(`Energy output: ${formatEnergy(storagePlantManagementResult.kwEnergyBefore)} -> ${formatEnergy(storagePlantManagementResult.kwEnergyAfter)}`);
 
   if (vesselInteractionsReport.length > 0) {
     console.log('\nVessel Activities:');

@@ -1,7 +1,7 @@
 import { Page } from "puppeteer";
 import { DrillHistoryEntry, ScanPoint, VesselInfo, VesselInteractionReport, VesselStatus } from "../../types/interface";
 import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
-import { getDistanceFromLatLonInNm } from "./vessel-helpers";
+import { calculateDistance } from "./vessel-helpers";
 import { fetchApiData, postApiData } from "../../utils/api-requests";
 
 export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport[]> {
@@ -88,7 +88,7 @@ function findValidScanPoint(scanArea: { north: number; south: number; east: numb
 
 function isCenterPointWithinDrillHistory(point: ScanPoint, drillHistories: DrillHistoryEntry[]): boolean {
   return drillHistories.some(history => {
-    const distance = getDistanceFromLatLonInNm(point.lat, point.lon, history.lat, history.lon);
+    const distance = calculateDistance(point.lat, point.lon, history.lat, history.lon);
     return distance <= history.radius / 1852; // Convert meters to nautical miles
   });
 }

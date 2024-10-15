@@ -76,6 +76,25 @@ export interface ApiGrid {
   gridName: string;
 }
 
+export interface ConnectionInfo {
+  plantId: number;
+  lat: number;
+  lon: number;
+  distance: number;
+  currentStorageId: number;
+  landId: number;
+}
+
+export interface StorageConnectionInfo {
+  distance: number;
+  land: number;
+  plantsConnected: number;
+  lat: number;
+  lon: number;
+  capacity: number;
+  maxConnections: number;
+}
+
 
 // Vessel Route Point
 export interface VesselRoutePoint {

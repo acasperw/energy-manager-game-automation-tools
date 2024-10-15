@@ -2,8 +2,17 @@ import { ProcessedVesselStatus, VesselDestinationInfo } from "../../types/interf
 import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 import * as cheerio from 'cheerio';
 
-export function getDistanceFromLatLonInNm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 3440.065; // Radius of the Earth in nautical miles
+/**
+ * Calculates the distance between two points on Earth.
+ * @param lat1 Latitude of the first point in degrees
+ * @param lon1 Longitude of the first point in degrees
+ * @param lat2 Latitude of the second point in degrees
+ * @param lon2 Longitude of the second point in degrees
+ * @param unit 'nm' for nautical miles, 'km' for kilometers
+ * @returns Distance in the specified unit
+ */
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number, unit: 'nm' | 'km' = 'nm'): number {
+  const R = unit === 'nm' ? 3440.065 : 6371; // Earth's radius in nautical miles or kilometers
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
   const a =

@@ -70,8 +70,16 @@ export async function sessionSummaryReport(
     });
   }
 
-  console.log('\nPlant Management:');
-  if (storagePlantManagementResult.totalEnabled > 0 || storagePlantManagementResult.totalDisabled > 0 || storagePlantManagementResult.totalSwitched > 0) {
+  if (
+    storagePlantManagementResult.totalEnabled > 0 ||
+    storagePlantManagementResult.totalDisabled > 0 ||
+    storagePlantManagementResult.totalSwitched > 0 ||
+    storagePlantManagementResult.refueled.didRefuelOil ||
+    storagePlantManagementResult.refueled.didRefuelNuclear ||
+    storagePlantManagementResult.refueled.didRefuelCoal ||
+    storagePlantManagementResult.reEnabledSolarPlants.enabledPlants > 0
+  ) {
+    console.log('\nPlant Management:');
 
     if (storagePlantManagementResult.totalEnabled > 0) {
       console.log(`Enabled ${storagePlantManagementResult.totalEnabled} plants.`);
@@ -104,9 +112,9 @@ export async function sessionSummaryReport(
     }
   }
 
-  if (storagePlantManagementResult.reEnabledSolarPlants.enabledPlants > 0) {
-    console.log(`Re-enabled ${storagePlantManagementResult.reEnabledSolarPlants.enabledPlants} solar plants.`);
-  }
+  // if (storagePlantManagementResult.reEnabledSolarPlants.enabledPlants > 0) {
+  //   console.log(`Re-enabled ${storagePlantManagementResult.reEnabledSolarPlants.enabledPlants} solar plants.`);
+  // }
 
   // console.log(`Energy output: ${formatEnergy(storagePlantManagementResult.kwEnergyBefore)} -> ${formatEnergy(storagePlantManagementResult.kwEnergyAfter)}`);
 

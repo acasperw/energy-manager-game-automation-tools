@@ -1,5 +1,5 @@
 import { gracefulShutdown, scheduleJob } from 'node-schedule';
-import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport } from './types/interface';
+import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, StorageAndPlantManagementResult, TaskDecisions, VesselInteractionReport } from './types/interface';
 import { Page } from 'puppeteer';
 import { closeBrowser, initializeBrowser, loginToEnergyManager } from './automation/browser';
 import { fetchGameSessionData } from './data/collector';
@@ -8,28 +8,24 @@ import { sellGridEnergy } from './tasks/sellGridEnergy';
 import { sellGridHydrogen } from './tasks/sellGridHydrogen'
 import { sessionSummaryReport } from './tasks/sessionSummaryReport';
 import { buyC02Quotas } from './tasks/buyC02Quotas';
-import { reEnableSolarPlants } from './_old-puppeteer-tasks/reEnableSolarPlants';
 import { withRetry } from './utils/helpers';
-import { refuelEnableStoragesPlants } from './_old-puppeteer-tasks/refuelEnableStoragesPlants';
 import { storeGridHydrogen } from './tasks/storeGridHydrogen';
 import { doResearch } from './tasks/doResearch';
 import { vesselInteractions } from './tasks/vessels';
 import { handleHackScenario } from './tasks/handleHackScenario';
 import { buyCommodities } from './tasks/buyCommodities';
+import { storageAndPlantManagement } from './tasks/storageAndPlantManagement';
 
 export async function executeTasks(decisions: TaskDecisions, data: GameSessionData, page: Page): Promise<{
   energySalesInfo: EnergySalesProcess,
   hydrogenSalesTotal: HydrogenSalesInfo,
-  enabledPlants: RefuelEnableStoragesPlantsResult,
-  reenabledSolarPlants: ReEnablePlantsResult,
   co2QuotasBought: number,
   commoditiesBought: Record<string, number>,
   storeHydrogen: boolean
 }> {
   let energySalesInfo: EnergySalesProcess = { processedGrids: 0, processedGridsResults: [] };
   let hydrogenSalesTotal: HydrogenSalesInfo = { sale: 0, includingSilo: false };
-  let enabledPlants: RefuelEnableStoragesPlantsResult = { totalEnabled: 0, totalSkipped: 0, totalOutOfFuel: 0, didRefuel: false, pctRefueled: 0, totalDisabled: 0 };
-  let reenabledSolarPlants: ReEnablePlantsResult = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
+  let storagePlantManagementResult = {} as StorageAndPlantManagementResult;
   let co2QuotasBought = 0;
   let commoditiesBought: Record<string, number> = {};
   let storeHydrogen = false;
@@ -59,12 +55,8 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     hydrogenSalesTotal = await sellGridHydrogen(page, data, decisions);
   }
 
-  if (decisions.enableStoragesPlants) {
-    enabledPlants = await refuelEnableStoragesPlants(page, data);
-  }
-
-  if (decisions.reenableSolarPlants) {
-    reenabledSolarPlants = await reEnableSolarPlants(page, data, decisions);
+  if (decisions.manageStoragesPlants) {
+    storagePlantManagementResult = await storageAndPlantManagement(page, data, decisions);
   }
 
   if (decisions.doResearch) {
@@ -81,8 +73,7 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
     energySalesInfo,
     hydrogenSalesTotal,
     co2QuotasBought,
-    enabledPlants,
-    reenabledSolarPlants,
+    storagePlantManagementResult,
     commoditiesBought,
     storeHydrogen,
     didResearch,
@@ -93,8 +84,6 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   return {
     energySalesInfo,
     hydrogenSalesTotal,
-    enabledPlants,
-    reenabledSolarPlants,
     co2QuotasBought,
     commoditiesBought,
     storeHydrogen

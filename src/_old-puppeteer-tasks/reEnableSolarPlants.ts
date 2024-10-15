@@ -14,7 +14,7 @@ export async function reEnableSolarPlants(page: Page, data: GameSessionData, dec
   let reEnablePlants = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   try {
     reEnablePlants.kwEnergyBefore = await getEnergyOutputAmount(page) ?? 0;
-    const plantsToReenableIds = decisions.solarPlantsToReenable || [];
+    const plantsToReenableIds: string[] = [];
     if (plantsToReenableIds.length === 0) {
       return reEnablePlants;
     }

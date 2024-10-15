@@ -7,9 +7,7 @@ export interface TaskDecisions {
   sellHydrogen: boolean;
   sellHydrogenSilo: boolean;
 
-  enableStoragesPlants: boolean;
-  reenableSolarPlants: boolean;
-  solarPlantsToReenable: string[];
+  manageStoragesPlants: boolean;
 
   buyCo2Quotas: boolean;
   buyCommodities: boolean; // Buy any of oil, uranium, or coal

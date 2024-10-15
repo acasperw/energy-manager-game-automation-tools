@@ -43,9 +43,9 @@ export async function storageAndPlantManagement(page: Page, data: GameSessionDat
 
   try {
     await refuelPlants(page, data, result);
-    await switchFuelPlantsWithFullStorages(page, data, result);
+    await disableFuelPlantsWithFullStorages(page, data, result);
     await enableOfflinePlants(page, data, result);
-    await disablePlantsWithFullStorages(page, data, result);
+    await switchFuelPlantsWithFullStorages(page, data, result);
     await reEnableSolarPlants(page, data, decisions, result);
   } catch (error) {
     console.error('Error in storageAndPlantManagement:', error);
@@ -90,8 +90,9 @@ async function enableOfflinePlants(page: Page, data: GameSessionData, result: St
   // Implement logic to enable offline plants
 }
 
-async function disablePlantsWithFullStorages(page: Page, data: GameSessionData, result: StorageAndPlantManagementResult): Promise<void> {
-  // Implement logic to disable plants with full storages
+async function disableFuelPlantsWithFullStorages(page: Page, data: GameSessionData, result: StorageAndPlantManagementResult): Promise<void> {
+  const onlineFuelPlants: Plant[] = data.plants.filter(plant => plant.online && FUEL_BASED_PLANTS.includes(plant.plantType));
+  console.log('onlineFuelPlants:', onlineFuelPlants);
 }
 
 async function reEnableSolarPlants(page: Page, data: GameSessionData, decisions: TaskDecisions, result: StorageAndPlantManagementResult): Promise<void> {

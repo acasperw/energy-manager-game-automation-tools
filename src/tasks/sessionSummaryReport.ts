@@ -1,5 +1,5 @@
 import { CO2_PRICE_THRESHOLD_MAX, COAL_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, OIL_SELL_PRICE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
-import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport, VesselStatus } from "../types/interface";
+import { EnergySalesProcess, GameSessionData, HydrogenSalesInfo, TaskDecisions, VesselInteractionReport, VesselStatus, StorageAndPlantManagementResult } from "../types/interface";
 import { formatCurrency, formatEnergy, formatNumber } from "../utils/helpers";
 
 export async function sessionSummaryReport(
@@ -8,8 +8,7 @@ export async function sessionSummaryReport(
   energySalesInfo: EnergySalesProcess,
   hydrogenSalesTotal: HydrogenSalesInfo,
   co2QuotasBought: number,
-  enabledPlants: RefuelEnableStoragesPlantsResult,
-  reenabledSolarPlants: ReEnablePlantsResult,
+  storagePlantManagementResult: StorageAndPlantManagementResult,
   commoditiesBought: Record<string, number>,
   storeHydrogen: boolean,
   didResearch: number,
@@ -71,35 +70,35 @@ export async function sessionSummaryReport(
     });
   }
 
-  const highWearPlants = data.plants.filter(plant => plant.wear! > 80);
-  if (highWearPlants.length > 0 || enabledPlants.totalEnabled > 0 || (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length)) {
-    console.log('\nPlants:');
-  }
-  if (highWearPlants.length > 0) {
-    console.log('High wear plants:');
-    highWearPlants.forEach(plant => {
-      const storage = data.energyGrids.find(storage => storage.storages.some(s => s.id === plant.storageId?.toString()));
-      if (storage) {
-        console.log(`Plant ${plant.plantId} in grid ${storage.gridName} has a wear of ${plant.wear}%`);
-      }
-    });
-  }
-  if (enabledPlants.totalEnabled > 0) {
-    console.log(`Enabled ${enabledPlants.totalEnabled} plants${enabledPlants.totalSkipped > 0 ? ` and skipped ${enabledPlants.totalSkipped}` : ''}.`);
-    if (enabledPlants.didRefuel) {
-      console.log(`Successfully refueled plants to ${enabledPlants.pctRefueled}%`);
-    }
-    if (enabledPlants.totalOutOfFuel > 0) {
-      console.log(`Skipped ${enabledPlants.totalOutOfFuel} plants due to lack of fuel.`);
-    }
-  }
-  if (enabledPlants.totalDisabled > 0) {
-    console.log(`Disabled ${enabledPlants.totalDisabled} plants.`);
-  }
-  if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
-    console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
-    console.log(`Energy output: ${formatEnergy(reenabledSolarPlants.kwEnergyBefore)} -> ${formatEnergy(reenabledSolarPlants.kwEnergyAfter)}`);
-  }
+  // const highWearPlants = data.plants.filter(plant => plant.wear! > 80);
+  // if (highWearPlants.length > 0 || enabledPlants.totalEnabled > 0 || (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length)) {
+  //   console.log('\nPlants:');
+  // }
+  // if (highWearPlants.length > 0) {
+  //   console.log('High wear plants:');
+  //   highWearPlants.forEach(plant => {
+  //     const storage = data.energyGrids.find(storage => storage.storages.some(s => s.id === plant.storageId?.toString()));
+  //     if (storage) {
+  //       console.log(`Plant ${plant.plantId} in grid ${storage.gridName} has a wear of ${plant.wear}%`);
+  //     }
+  //   });
+  // }
+  // if (enabledPlants.totalEnabled > 0) {
+  //   console.log(`Enabled ${enabledPlants.totalEnabled} plants${enabledPlants.totalSkipped > 0 ? ` and skipped ${enabledPlants.totalSkipped}` : ''}.`);
+  //   if (enabledPlants.didRefuel) {
+  //     console.log(`Successfully refueled plants to ${enabledPlants.pctRefueled}%`);
+  //   }
+  //   if (enabledPlants.totalOutOfFuel > 0) {
+  //     console.log(`Skipped ${enabledPlants.totalOutOfFuel} plants due to lack of fuel.`);
+  //   }
+  // }
+  // if (enabledPlants.totalDisabled > 0) {
+  //   console.log(`Disabled ${enabledPlants.totalDisabled} plants.`);
+  // }
+  // if (decisions.reenableSolarPlants && decisions.solarPlantsToReenable.length) {
+  //   console.log(`Re-enabled ${reenabledSolarPlants.enabledPlants} out of ${decisions.solarPlantsToReenable.length} solar plants.`);
+  //   console.log(`Energy output: ${formatEnergy(reenabledSolarPlants.kwEnergyBefore)} -> ${formatEnergy(reenabledSolarPlants.kwEnergyAfter)}`);
+  // }
 
   if (vesselInteractionsReport.length > 0) {
     console.log('\nVessel Activities:');

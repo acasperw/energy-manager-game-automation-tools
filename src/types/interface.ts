@@ -27,6 +27,9 @@ export interface StorageInfo {
   plantsConnected: number;
   chargePerSec: number;
   expectedChargePerSec: number;
+  discharging: boolean;
+  lat: number;
+  lon: number;
 }
 
 export interface GridStorage {
@@ -124,6 +127,7 @@ export interface StorageAndPlantManagementResult {
   totalDisabled: number;
   totalSkipped: number;
   totalSwitched: number;
+  totalErrors: number;
 
   refueled: {
     totalOutOfFuel: number;

@@ -60,7 +60,7 @@ if `#hack-countdown` exists ?
 
 // Shutdown (if on, will go off, and vice versa)
 /status-plant-set-fossil.php?id=9820384&paneTarget=max
-then
+then (automatically?)
 /api/production.stop.php?id=9820384
 
 

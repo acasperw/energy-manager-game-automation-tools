@@ -171,6 +171,9 @@ function processEnergyGrids(
       plantsConnected,
       chargePerSec: storage.chargePerSec, // From API data
       expectedChargePerSec,
+      discharging: userData.storage[storageId].discharging === 1,
+      lat: userData.storage[storageId].lat ?? 0,
+      lon: userData.storage[storageId].lon ?? 0
     };
 
     if (!gridMap.has(gridId)) {

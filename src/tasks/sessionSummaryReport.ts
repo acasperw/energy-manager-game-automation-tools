@@ -1,6 +1,5 @@
-import { CO2_PRICE_THRESHOLD_MAX, COAL_PRICE_THRESHOLD_MAX, ENHANCED_REPORTING, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, OIL_SELL_PRICE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
+import { CO2_PRICE_THRESHOLD_MAX, COAL_PRICE_THRESHOLD_MAX, HYDROGEN_PRICE_THRESHOLD_MIN, OIL_PRICE_THRESHOLD_MAX, OIL_SELL_PRICE_THRESHOLD_MIN, URANIUM_PRICE_THRESHOLD_MAX } from "../config";
 import { RefuelEnableStoragesPlantsResult, EnergySalesProcess, GameSessionData, HydrogenSalesInfo, ReEnablePlantsResult, TaskDecisions, VesselInteractionReport, VesselStatus } from "../types/interface";
-import { displayAverageFactors, extractFactorsPerGrid, updateFactorsSummary } from "../utils/data-storage";
 import { formatCurrency, formatEnergy, formatNumber } from "../utils/helpers";
 
 export async function sessionSummaryReport(
@@ -50,16 +49,14 @@ export async function sessionSummaryReport(
   }
 
   if (decisions.buyCo2Quotas && co2QuotasBought > 0) {
-    console.log('\nCO2 Quotas:');
+    console.log('\nCO2 quotas:');
     if (decisions.buyCo2Quotas && co2QuotasBought > 0) {
-      console.log(`CO2 quotas bought for ${formatCurrency(data.co2Value)} (Threshold: ${formatCurrency(CO2_PRICE_THRESHOLD_MAX)}): ${co2QuotasBought.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`);
-    } else {
-      console.log('No CO2 quotas were bought.');
+      console.log(`CO2 quotas bought for ${formatCurrency(data.co2Value)} (Threshold: ${formatCurrency(CO2_PRICE_THRESHOLD_MAX)}): ${formatNumber(co2QuotasBought)}`);
     }
   }
 
-  if (decisions.buyCommodities) {
-    console.log('\nCommodities purchased:');
+  if (decisions.buyCommodities && commoditiesBought.length > 0) {
+    console.log('\nFuel purchased:');
 
     const commodities = [
       { name: 'Oil', amount: commoditiesBought.oil, price: data.oilBuyPricePerKg, threshold: OIL_PRICE_THRESHOLD_MAX },
@@ -69,7 +66,7 @@ export async function sessionSummaryReport(
 
     commodities.forEach(commodity => {
       if (commodity.amount > 0) {
-        console.log(`${commodity.name} bought for ${formatCurrency(commodity.price)} (Threshold: ${formatCurrency(commodity.threshold)}): ${commodity.amount.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`);
+        console.log(`${commodity.name} bought for ${formatCurrency(commodity.price)} (Threshold: ${formatCurrency(commodity.threshold)}): ${formatNumber(commodity.amount)}`);
       }
     });
   }

@@ -209,9 +209,9 @@ async function disableFuelPlantsWithFullStorages(page: Page, data: GameSessionDa
     const storage = findStorageById(plant.storageId, data.energyGrids);
     if (storage && isStorageFull(storage)) {
       try {
-        await postApiData(page, `/status-plant-set-fossil.php?id=${plant.plantId}&paneTarget=max`);
+        await postApiData(page, `/status-plant-set-fossil.php?id=${plant.plantId}&target=0`);
         delay(50);
-        await postApiData(page, `/production.stop.php?id=${plant.plantId}`); // Why is this not done by the above call?
+        await postApiData(page, `/api/production.stop.php?id=${plant.plantId}`);
         result.totalDisabled += 1;
         disabledPlantIds.push(plant.plantId);
       } catch (error) {

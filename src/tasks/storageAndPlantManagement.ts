@@ -3,7 +3,7 @@ import { GameSessionData, StorageAndPlantManagementResult, TaskDecisions } from 
 import { ConnectionInfo, Plant, StorageConnectionInfo } from "../types/api";
 import { fetchApiData, postApiData } from "../utils/api-requests";
 import { getSliderValuesFromString } from "../utils/browser-data-helpers";
-import { capitalize } from "../utils/helpers";
+import { capitalize, delay } from "../utils/helpers";
 import { findStorageById, isStorageFull } from "../utils/grid-utils";
 import { calculateDistance } from "./vessels/vessel-helpers";
 import { getEnergyOutputAmount } from "../automation/interactions";
@@ -201,6 +201,7 @@ async function disableFuelPlantsWithFullStorages(page: Page, data: GameSessionDa
     if (storage && isStorageFull(storage)) {
       try {
         await postApiData(page, `/status-plant-set-fossil.php?id=${plant.plantId}&paneTarget=max`);
+        delay(50);
         await postApiData(page, `/production.stop.php?id=${plant.plantId}`); // Why is this not done by the above call?
         result.totalDisabled += 1;
         disabledPlantIds.push(plant.plantId);

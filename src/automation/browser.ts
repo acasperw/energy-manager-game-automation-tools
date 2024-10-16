@@ -50,6 +50,9 @@ export async function loginToEnergyManager(page: Page): Promise<void> {
 
   } catch (error) {
     console.error('An error occurred during login or page load:', error);
+    if (error instanceof Error) {
+      console.error('Error stack:', error.stack);
+    }
     await captureScreenshot(page, 'login-error.png');
     throw error;
   }

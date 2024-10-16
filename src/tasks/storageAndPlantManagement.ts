@@ -109,9 +109,14 @@ async function switchFuelPlantsWithFullStorages(page: Page, data: GameSessionDat
       const newStorage = await findBestAvailableStorage(page, data, connectionInfo);
 
       if (newStorage) {
-        await postApiData(page, `/connect-storage.php?plantId=${plant.plantId}&storageId=${newStorage.id}`);
-        result.totalSwitched++;
-        updatePlantStatus(data, plant.plantId, true); // Ensure plant is marked as online after switch
+        try {
+          await postApiData(page, `/connect-storage.php?plantId=${plant.plantId}&storageId=${newStorage.id}`);
+          plant.storageId = newStorage.id;
+          result.totalSwitched++;
+        } catch (error) {
+          console.error(`Error switching storage for plant ${plant.plantId}:`, error);
+          result.totalErrors++;
+        }
       } else {
         console.log(`No suitable storage found for plant ${plant.plantId}`);
       }
@@ -141,11 +146,14 @@ function parseConnectionInfo(html: string): ConnectionInfo | null {
 }
 
 async function findBestAvailableStorage(page: Page, data: GameSessionData, connectionInfo: ConnectionInfo): Promise<NewStorageConnection | null> {
+  const MIN_STORAGE_CAPACITY = 1000000;
+
   const eligibleStorages = data.energyGrids
     .flatMap(grid => grid.storages)
     .filter(storage =>
       storage.id !== connectionInfo.currentStorageId.toString() &&
-      storage.capacity >= 1000000 &&
+      storage.capacity >= MIN_STORAGE_CAPACITY &&
+      !isStorageFull(storage) &&
       calculateDistance(connectionInfo.lat, connectionInfo.lon, storage.lat, storage.lon, 'km') <= connectionInfo.distance
     )
     .sort((a, b) => b.capacity - a.capacity);
@@ -161,6 +169,7 @@ async function findBestAvailableStorage(page: Page, data: GameSessionData, conne
         lon: apiResponse.lon
       };
     }
+    delay(50);
   }
   return null;
 }

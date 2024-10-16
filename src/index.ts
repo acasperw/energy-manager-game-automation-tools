@@ -32,9 +32,6 @@ export async function executeTasks(decisions: TaskDecisions, data: GameSessionDa
   let didResearch = 0;
   let vesselInteractionsReport: VesselInteractionReport[] = [];
 
-  const currentTime = new Date().toLocaleString();
-  console.log(`\n\n-------- Session summary report -------- ${currentTime} --------`);
-
   if (decisions.buyCo2Quotas) {
     co2QuotasBought = await buyC02Quotas(page, data);
   }
@@ -117,6 +114,8 @@ export async function mainTask(currentRerunCount: number = 0) {
   let page: Page | null = null;
   await withRetry(async () => {
     console.time('Session');
+    const currentTime = new Date().toLocaleString();
+    console.log(`\n\n-------- Session summary report -------- ${currentTime} --------`);
     try {
       const { page: newPage } = await initializeBrowser();
       page = newPage;

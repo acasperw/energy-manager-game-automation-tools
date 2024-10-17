@@ -3,10 +3,9 @@ import { GameSessionData, StorageAndPlantManagementResult, TaskDecisions } from 
 import { ConnectionInfo, Plant, StorageConnectionInfo } from "../types/api";
 import { fetchApiData, postApiData } from "../utils/api-requests";
 import { getSliderValuesFromString } from "../utils/browser-data-helpers";
-import { capitalize, delay } from "../utils/helpers";
+import { capitalize } from "../utils/helpers";
 import { findStorageById, isStorageFull } from "../utils/grid-utils";
 import { calculateDistance } from "./vessels/vessel-helpers";
-import { getEnergyOutputAmount } from "../automation/interactions";
 
 interface NewStorageConnection {
   id: number;
@@ -117,8 +116,6 @@ async function switchFuelPlantsWithFullStorages(page: Page, data: GameSessionDat
           console.error(`Error switching storage for plant ${plant.plantId}:`, error);
           result.totalErrors++;
         }
-      } else {
-        console.log(`No suitable storage found for plant ${plant.plantId}`);
       }
     } catch (error) {
       console.error(`Error switching storage for plant ${plant.plantId}:`, error);
@@ -169,7 +166,6 @@ async function findBestAvailableStorage(page: Page, data: GameSessionData, conne
         lon: apiResponse.lon
       };
     }
-    delay(50);
   }
   return null;
 }
@@ -210,7 +206,6 @@ async function disableFuelPlantsWithFullStorages(page: Page, data: GameSessionDa
     if (storage && isStorageFull(storage)) {
       try {
         await postApiData(page, `/status-plant-set-fossil.php?id=${plant.plantId}&target=0`);
-        delay(50);
         await postApiData(page, `/api/production.stop.php?id=${plant.plantId}`);
         result.totalDisabled += 1;
         disabledPlantIds.push(plant.plantId);

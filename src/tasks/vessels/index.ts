@@ -8,7 +8,9 @@ import { unloadOilAndTransferOrSell } from "./unloadOilAndTransferOrSell";
 export async function vesselInteractions(page: Page, gameData: GameSessionData): Promise<VesselInteractionReport[]> {
 
   const vesselReports: VesselInteractionReport[] = [];
-  const vesselsNeedingAction = gameData.vessels.filter(vessel => vessel.status !== VesselStatus.Enroute && vessel.status !== VesselStatus.Scanning && vessel.status !== VesselStatus.Drilling);
+  const vesselsNeedingAction = gameData.vessels
+    .filter(vessel => vessel.status !== VesselStatus.Enroute && vessel.status !== VesselStatus.Scanning && vessel.status !== VesselStatus.Drilling)
+    .filter(vessel => vessel.id !== "16100"); // TEMPORARY: Skip a vessel for testing
 
   for (const vessel of vesselsNeedingAction) {
     try {

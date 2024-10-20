@@ -95,6 +95,8 @@ async function switchFuelPlantsWithFullStorages(page: Page, data: GameSessionDat
     isStorageFull(findStorageById(plant.storageId, data.energyGrids))
   );
 
+  const switchedStorages = new Set<string>();
+
   for (const plant of fuelPlantsWithFullStorages) {
     try {
       const html = await postApiData<string>(page, `/status-plant-fossil.php?id=${plant.plantId}`);
@@ -105,13 +107,17 @@ async function switchFuelPlantsWithFullStorages(page: Page, data: GameSessionDat
         continue;
       }
 
-      const newStorage = await findBestAvailableStorage(page, data, connectionInfo);
+      const newStorage = await findBestAvailableStorage(page, data, connectionInfo, switchedStorages);
 
       if (newStorage) {
         try {
           await postApiData(page, `/connect-storage.php?plantId=${plant.plantId}&storageId=${newStorage.id}`);
           plant.storageId = newStorage.id;
           result.totalSwitched++;
+          switchedStorages.add(newStorage.id.toString());
+          // Update the plantsConnected count for existing storage
+          const updatedStorage = findStorageById(newStorage.id, data.energyGrids);
+          updatedStorage.plantsConnected++;
         } catch (error) {
           console.error(`Error switching storage for plant ${plant.plantId}:`, error);
           result.totalErrors++;
@@ -142,7 +148,7 @@ function parseConnectionInfo(html: string): ConnectionInfo | null {
   return null;
 }
 
-async function findBestAvailableStorage(page: Page, data: GameSessionData, connectionInfo: ConnectionInfo): Promise<NewStorageConnection | null> {
+async function findBestAvailableStorage(page: Page, data: GameSessionData, connectionInfo: ConnectionInfo, switchedStorages: Set<string>): Promise<NewStorageConnection | null> {
   const MIN_STORAGE_CAPACITY = 1000000;
 
   const eligibleStorages = data.energyGrids
@@ -151,9 +157,15 @@ async function findBestAvailableStorage(page: Page, data: GameSessionData, conne
       storage.id !== connectionInfo.currentStorageId.toString() &&
       storage.capacity >= MIN_STORAGE_CAPACITY &&
       !isStorageFull(storage) &&
-      calculateDistance(connectionInfo.lat, connectionInfo.lon, storage.lat, storage.lon, 'km') <= connectionInfo.distance
+      calculateDistance(connectionInfo.lat, connectionInfo.lon, storage.lat, storage.lon, 'km') <= connectionInfo.distance &&
+      !switchedStorages.has(storage.id)
     )
-    .sort((a, b) => b.capacity - a.capacity);
+    .sort((a, b) => {
+      if (a.plantsConnected === 0 && b.plantsConnected > 0) return -1;
+      if (b.plantsConnected === 0 && a.plantsConnected > 0) return 1;
+      // If both have connections or both don't, sort by capacity
+      return b.capacity - a.capacity;
+    });
 
   for (const storage of eligibleStorages) {
     const apiResponse = await fetchApiData<StorageConnectionInfo>(page, `/api/storage.php?id=${storage.id}&plantLat=${connectionInfo.lat}&landId=${connectionInfo.landId}&plantLon=${connectionInfo.lon}&plantId=${connectionInfo.plantId}`);

@@ -1,10 +1,10 @@
 import { Page } from "puppeteer";
 import { DrillHistoryEntry, ScanPoint, VesselInfo, VesselInteractionReport, VesselStatus } from "../../types/interface";
 import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
-import { calculateDistance } from "./vessel-helpers";
+import { calculateDistance, createVesselErrorReport, createVesselReport } from "./vessel-helpers";
 import { fetchApiData, postApiData } from "../../utils/api-requests";
 
-export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport[]> {
+export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport> {
   try {
     const drillHistories = Object.values(await fetchApiData<Record<string, DrillHistoryEntry>>(page, '/api/drill.history.php'));
     const scanStatusHtml = await postApiData<string>(page, `/status-vessel-operation.php?id=${vesselData.id}`);
@@ -17,30 +17,15 @@ export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<Ve
     const validScanPoint = findValidScanPoint(scanArea, drillHistories, maxRadius);
 
     if (!validScanPoint) {
-      return [{
-        vesselId: vesselData.id,
-        vesselName: vesselData.vesselName,
-        previousStatus: vesselData.status,
-        newStatus: vesselData.status,
-        action: "No valid scan points available",
-        destination: null,
-      }];
+      return createVesselErrorReport(vesselData, "No valid scan points available");
     }
 
     await initiateScan(page, vesselData.id, validScanPoint, maxRadius);
-
-    return [{
-      vesselId: vesselData.id,
-      vesselName: vesselData.vesselName,
-      previousStatus: vesselData.status,
-      newStatus: VesselStatus.Scanning,
-      action: `Scanned area at (${validScanPoint.lat}, ${validScanPoint.lon}) with radius ${maxRadius}m`,
-      destination: null,
-    }];
+    return createVesselReport(vesselData, VesselStatus.Scanning, `Scanned area at (${validScanPoint.lat}, ${validScanPoint.lon})`, null);
 
   } catch (error) {
     console.error(`Error in scanForOil for vessel ${vesselData.id}:`, error);
-    return [];
+    return createVesselErrorReport(vesselData, "Error occurred during scan");
   }
 }
 

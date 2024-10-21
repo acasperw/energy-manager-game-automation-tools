@@ -161,9 +161,15 @@ async function findBestAvailableStorage(page: Page, data: GameSessionData, conne
       !switchedStorages.has(storage.id)
     )
     .sort((a, b) => {
+      // Prioritize p2x storages
+      if (a.type === 'p2x' && b.type !== 'p2x') return -1;
+      if (b.type === 'p2x' && a.type !== 'p2x') return 1;
+
+      // If both are p2x or both are not, prioritize storages with no connections
       if (a.plantsConnected === 0 && b.plantsConnected > 0) return -1;
       if (b.plantsConnected === 0 && a.plantsConnected > 0) return 1;
-      // If both have connections or both don't, sort by capacity
+
+      // If both have the same p2x status and connection status, sort by capacity
       return b.capacity - a.capacity;
     });
 

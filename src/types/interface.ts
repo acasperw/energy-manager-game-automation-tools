@@ -163,6 +163,7 @@ export interface VesselInfo {
   locLat: number;
   locLon: number;
   status: VesselStatus;
+  extracted: number;
   oilOnboard: number;
   vesselName: string;
   routeId: string;

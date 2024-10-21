@@ -387,6 +387,7 @@ function extractVesselInfo(vessel: Vessel): VesselInfo[] {
       locLon: parsedLocLon,
       status,
       oilOnboard,
+      extracted: parseInt(vesselData.extracted) ?? 0,
       vesselName: vesselData.vesselName,
       routeId: vesselData.routeId,
       reverse: vesselData.reverse === '1',

@@ -5,6 +5,7 @@ import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 import { OIL_SELL_PRICE_THRESHOLD_MIN } from "../../config";
 
 export async function unloadOilAndTransferOrSell(page: Page, vesselData: VesselInfo, gameData: GameSessionData): Promise<VesselInteractionReport> {
+
   const vesselInteractionReport: VesselInteractionReport = {
     vesselId: vesselData.id,
     vesselName: vesselData.vesselName,
@@ -38,6 +39,8 @@ export async function unloadOilAndTransferOrSell(page: Page, vesselData: VesselI
       vesselInteractionReport.action += ` (${bblOnShips - transferAmount} barrels remaining on ship due to capacity limit)`;
     }
   }
+
+  vesselData.status = VesselStatus.InPort;
 
   return vesselInteractionReport;
 }

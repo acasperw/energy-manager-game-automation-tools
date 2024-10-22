@@ -1,4 +1,4 @@
-import { ProcessedVesselStatus, VesselDestinationInfo } from "../../types/interface";
+import { ProcessedVesselStatus, VesselDestinationInfo, VesselInfo, VesselInteractionReport, VesselStatus } from "../../types/interface";
 import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 import * as cheerio from 'cheerio';
 
@@ -63,4 +63,26 @@ export function processVesselStatus(html: string): ProcessedVesselStatus {
 
   const { max } = getSliderValuesFromString(html);
   return { ports, maxSpeed: max };
+}
+
+export function createVesselReport(
+  vessel: VesselInfo,
+  newStatus: VesselStatus,
+  action: string,
+  destination: VesselDestinationInfo | null = null,
+  additionalProps: Partial<VesselInteractionReport> = {}
+): VesselInteractionReport {
+  return {
+    vesselId: vessel.id,
+    vesselName: vessel.vesselName,
+    previousStatus: vessel.status,
+    newStatus,
+    action,
+    destination,
+    ...additionalProps
+  };
+}
+
+export function createVesselErrorReport(vessel: VesselInfo, errorMessage: string): VesselInteractionReport {
+  return createVesselReport(vessel, vessel.status, `Error: ${errorMessage}`, null);
 }

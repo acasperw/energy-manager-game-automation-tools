@@ -25,8 +25,8 @@ export async function vesselInteractions(page: Page, gameData: GameSessionData):
       }
 
       if (vessel.status === VesselStatus.AnchoredWithOil) {
-        // const report = await goToPortOrNextField(page, vessel);
-        // vesselReports.push(report);
+        const report = await goToPortOrNextField(page, vessel);
+        vesselReports.push(report);
       }
 
       if (vessel.status === VesselStatus.InPortWithOil) {

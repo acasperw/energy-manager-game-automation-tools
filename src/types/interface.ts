@@ -180,6 +180,7 @@ export interface VesselDestinationInfo {
 export interface ProcessedVesselStatus {
   ports: VesselDestinationInfo[];
   maxSpeed: number | null;
+  fillPercentage: number | null;
 }
 
 export interface VesselInteractionReport {

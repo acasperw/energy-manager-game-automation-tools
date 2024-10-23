@@ -31,13 +31,14 @@ export function deg2rad(deg: number): number {
 /**
  * Parses the vessel status HTML to extract Oil field or port destinations and slider max speed.
  * @param html HTML content of the vessel status page
- * @returns An object containing an array of VesselDestinationInfo and the maxSpeed
+ * @returns An object containing an array of VesselDestinationInfo, the maxSpeed, and the fillPercentage
  */
 export function processVesselStatus(html: string): ProcessedVesselStatus {
   const $ = cheerio.load(html);
+
   const ports: VesselDestinationInfo[] = [];
 
-  // Extract ports from the #dest-selector
+  // Extract ports
   $('#dest-selector option').each((_, element) => {
     const option = $(element);
     const value = option.attr('value');
@@ -61,8 +62,17 @@ export function processVesselStatus(html: string): ProcessedVesselStatus {
     ports.push(port);
   });
 
+  // Max speed
   const { max } = getSliderValuesFromString(html);
-  return { ports, maxSpeed: max };
+
+  // Extract fill percentage
+  let fillPercentage = null;
+  const fillPercentageEl = $('div.fw-500.roboto.l-text').text();
+  if (fillPercentageEl !== '') {
+    fillPercentage = parseInt(fillPercentageEl.replace('%', ''));
+  }
+
+  return { ports, maxSpeed: max, fillPercentage };
 }
 
 export function createVesselReport(

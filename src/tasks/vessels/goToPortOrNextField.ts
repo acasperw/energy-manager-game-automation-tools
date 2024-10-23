@@ -2,10 +2,15 @@ import { Page } from "puppeteer";
 import { VesselInfo, VesselInteractionReport, VesselStatus } from "../../types/interface";
 import { postApiData } from "../../utils/api-requests";
 import { createVesselErrorReport, createVesselReport, processVesselStatus } from "./vessel-helpers";
+import { scanForOil } from "./scanForOil";
 
 export async function goToPortOrNextField(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport> {
   const vesselStatusHtml = await postApiData<string>(page, `/status-vessel.php?id=${vesselData.id}`);
-  const { ports, maxSpeed } = processVesselStatus(vesselStatusHtml);
+  const { ports, maxSpeed, fillPercentage } = processVesselStatus(vesselStatusHtml);
+
+  if (fillPercentage !== null && fillPercentage < 100) {
+    return await scanForOil(page, vesselData);
+  }
 
   if (ports.length === 0) {
     console.error(`No ports found for vessel ${vesselData.id}`);

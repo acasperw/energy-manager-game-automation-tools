@@ -6,6 +6,7 @@ import { getSliderValuesFromString } from "../utils/browser-data-helpers";
 import { capitalize } from "../utils/helpers";
 import { findStorageById, isStorageFull } from "../utils/grid-utils";
 import { calculateDistance } from "./vessels/vessel-helpers";
+import { reEnableSolarPlants } from "../_old-puppeteer-tasks/reEnableSolarPlants";
 
 interface NewStorageConnection {
   id: number;
@@ -51,7 +52,8 @@ export async function storageAndPlantManagement(page: Page, data: GameSessionDat
     await refuelPlants(page, data, result);
     await switchFuelPlantsWithFullStorages(page, data, result);
     await enableOfflinePlants(page, data, result);
-    // await reEnableSolarPlants(page, data, decisions, result);
+    let solarResult = await reEnableSolarPlants(page, data, decisions);
+    result.reEnabledSolarPlants.enabledPlants = solarResult.enabledPlants;
     // result.kwEnergyAfter = await getEnergyOutputAmount(page) ?? 0;
   } catch (error) {
     console.error('Error in storageAndPlantManagement:', error);
@@ -236,10 +238,10 @@ async function disableFuelPlantsWithFullStorages(page: Page, data: GameSessionDa
   disabledPlantIds.forEach(plantId => updatePlantStatus(data, plantId, false));
 }
 
-async function reEnableSolarPlants(page: Page, data: GameSessionData, decisions: TaskDecisions, result: StorageAndPlantManagementResult): Promise<void> {
-  // Implement logic to re-enable solar plants
-  // Exclude plants that have been previously interacted with
-}
+// async function reEnableSolarPlants(page: Page, data: GameSessionData, decisions: TaskDecisions, result: StorageAndPlantManagementResult): Promise<void> {
+//   // Implement logic to re-enable solar plants
+//   // Exclude plants that have been previously interacted with
+// }
 
 function updatePlantStatus(data: GameSessionData, plantId: string, isOnline: boolean): void {
   const plant = data.plants.find(p => p.plantId === plantId);

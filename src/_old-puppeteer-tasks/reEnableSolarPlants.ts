@@ -15,6 +15,24 @@ export async function reEnableSolarPlants(page: Page, data: GameSessionData, dec
   try {
     reEnablePlants.kwEnergyBefore = await getEnergyOutputAmount(page) ?? 0;
     const plantsToReenableIds: string[] = [];
+
+    // Solar plants
+    const discrepancyThreshold = 0.25;
+    for (const grid of data.energyGrids) {
+      for (const storage of grid.storages) {
+        if (storage.plantsConnected > 0) {
+          const expectedCharge = storage.expectedChargePerSec;
+          const actualCharge = storage.chargePerSec;
+          if (expectedCharge > 0 && actualCharge / expectedCharge < (1 - discrepancyThreshold)) {
+            const affectedPlantIds = data.plants
+              .filter(plant => plant.storageId.toString() === storage.id && plant.plantType === 'solar')
+              .map(plant => plant.plantId);
+            plantsToReenableIds.push(...affectedPlantIds);
+          }
+        }
+      }
+    }
+
     if (plantsToReenableIds.length === 0) {
       return reEnablePlants;
     }

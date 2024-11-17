@@ -7,11 +7,14 @@ import { Plant } from '../types/api';
 import { clickElement, ifElementExists } from '../automation/helpers';
 import { captureScreenshot } from '../automation/browser';
 
+/**
+ * @deprecated since version 2.3
+ */
 export async function reEnableSolarPlants(page: Page, data: GameSessionData, decisions: TaskDecisions): Promise<ReEnablePlantsResult> {
   let reEnablePlants = { enabledPlants: 0, kwEnergyBefore: 0, kwEnergyAfter: 0 };
   try {
     reEnablePlants.kwEnergyBefore = await getEnergyOutputAmount(page) ?? 0;
-    const plantsToReenableIds = decisions.solarPlantsToReenable || [];
+    const plantsToReenableIds: string[] = [];
     if (plantsToReenableIds.length === 0) {
       return reEnablePlants;
     }

@@ -28,6 +28,7 @@ export async function loginToEnergyManager(page: Page): Promise<void> {
 
   try {
     await page.goto(`${BASE_URL}`, { waitUntil: 'networkidle2', timeout: 180000 });
+    await delay(200);
     const currentUrl = page.url();
 
     //  Check if we are on the login page and login if needed
@@ -49,6 +50,9 @@ export async function loginToEnergyManager(page: Page): Promise<void> {
 
   } catch (error) {
     console.error('An error occurred during login or page load:', error);
+    if (error instanceof Error) {
+      console.error('Error stack:', error.stack);
+    }
     await captureScreenshot(page, 'login-error.png');
     throw error;
   }

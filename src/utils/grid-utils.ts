@@ -1,5 +1,6 @@
 import { pctOfMaxPrice_other_grid_THRESHOLD_MIN } from "../config";
-import { GridStorage } from "../types/interface";
+import { GameSessionData, GridStorage, StorageInfo } from "../types/interface";
+import { Plant } from "../types/api";
 
 export function filterGridsByStorageType(grids: GridStorage[], storageType: 'p2x' | 'non-p2x'): GridStorage[] {
   return grids.filter(grid =>
@@ -38,3 +39,27 @@ export const parseCoordinate = (coord: string | number): number => {
   }
   return parsed;
 };
+
+export function findStorageById(storageID: number, energyGrids: GameSessionData['energyGrids']): StorageInfo {
+  for (const grid of energyGrids) {
+    for (const storage of grid.storages) {
+      if (storage.id === storageID.toString()) {
+        return storage;
+      }
+    }
+  }
+
+  throw new Error(`No storage found for ID: ${storageID}`);
+}
+
+export function isStorageFull(storage: StorageInfo): boolean {
+  return storage.currentCharge === storage.capacity;
+}
+
+export function isPlantOutOfFuel(plant: Plant): boolean {
+  return plant.fuelCapacity !== 0 && plant.fuelHolding === 0;
+}
+
+export function isPlantLowOnFuel(plant: Plant): boolean {
+  return plant.fuelCapacity !== 0 && plant.fuelHolding < plant.fuelCapacity;
+}

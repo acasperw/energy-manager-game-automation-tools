@@ -60,7 +60,7 @@ if `#hack-countdown` exists ?
 
 // Shutdown (if on, will go off, and vice versa)
 /status-plant-set-fossil.php?id=9820384&paneTarget=max
-then
+then (automatically?)
 /api/production.stop.php?id=9820384
 
 
@@ -176,3 +176,9 @@ JSON response,
 
 /connect-storage.php?plantId=10299181&storageId=11639330
 
+
+// Refuel nuclear, fossil and coal
+
+Check for fillable percentage, per type
+/fuel-management.php?type=oil
+/fuel-management.php?type=uranium

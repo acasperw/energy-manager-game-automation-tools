@@ -1,23 +1,20 @@
 import { Page } from "puppeteer";
-import { VesselInfo, VesselDestinationInfo } from "../../types/interface";
+import { VesselInfo, VesselInteractionReport, VesselStatus } from "../../types/interface";
 import { postApiData } from "../../utils/api-requests";
-import { processVesselStatus } from "./vessel-helpers";
+import { createVesselErrorReport, createVesselReport, processVesselStatus } from "./vessel-helpers";
+import { scanForOil } from "./scanForOil";
 
-/**
- * Sends the vessel to the closest oil field or port based on distance.
- * @param page Puppeteer Page instance
- * @param vesselData Information about the vessel
- */
-export async function goToPortOrNextField(page: Page, vesselData: VesselInfo): Promise<VesselDestinationInfo> {
-
+export async function goToPortOrNextField(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport> {
   const vesselStatusHtml = await postApiData<string>(page, `/status-vessel.php?id=${vesselData.id}`);
-  const { ports, maxSpeed } = processVesselStatus(vesselStatusHtml);
+  const { ports, maxSpeed, fillPercentage } = processVesselStatus(vesselStatusHtml);
 
-  // TODO: CHECK WHAT HAPPENS IF THE SHIP IS NOT FULLY LOADED
+  if (fillPercentage !== null && fillPercentage < 100) {
+    return await scanForOil(page, vesselData);
+  }
 
   if (ports.length === 0) {
     console.error(`No ports found for vessel ${vesselData.id}`);
-    return { id: '', name: '', distance: 0 };
+    return createVesselErrorReport(vesselData, `No ports found for vessel ${vesselData.id}`);
   }
 
   const closestDest = ports.reduce((prev, curr) => (curr.distance < prev.distance ? curr : prev), ports[0]);
@@ -26,9 +23,9 @@ export async function goToPortOrNextField(page: Page, vesselData: VesselInfo): P
   const sendVesselUrl = `/vessel-depart.php?vesselId=${vesselData.id}&destination=${closestDest.id}&speed=${sendSpeed}`;
   try {
     await postApiData<string>(page, sendVesselUrl);
+    return createVesselReport(vesselData, VesselStatus.Enroute, "Sent to port or next field", closestDest);
   } catch (error) {
     console.error(`Failed to send vessel ${vesselData.id} to port ${closestDest.name}:`, error);
+    return createVesselErrorReport(vesselData, `Failed to send vessel ${vesselData.id} to port ${closestDest.name}:`);
   }
-
-  return closestDest;
 }

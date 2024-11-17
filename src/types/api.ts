@@ -29,7 +29,7 @@ export interface Plant {
   lat: number;
   lon: number;
   online: 0 | 1;
-  plantType: 'wind' | 'solar' | 'fossil' | 'nuclear';
+  plantType: 'wind' | 'solar' | 'fossil' | 'nuclear' | 'coal';
   storageId: number;
   output: number;
   capacity: number;
@@ -74,6 +74,25 @@ export interface UserStorage {
 
 export interface ApiGrid {
   gridName: string;
+}
+
+export interface ConnectionInfo {
+  plantId: number;
+  lat: number;
+  lon: number;
+  distance: number;
+  currentStorageId: number;
+  landId: number;
+}
+
+export interface StorageConnectionInfo {
+  distance: number;
+  land: number;
+  plantsConnected: number;
+  lat: number;
+  lon: number;
+  capacity: number;
+  maxConnections: number;
 }
 
 

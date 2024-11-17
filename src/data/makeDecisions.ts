@@ -7,8 +7,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
   let sellHydrogenSilo = false;
   let sellEnergy = false;
 
-  let reenableSolarPlants = false;
-  let enableStoragesPlants = false;
+  let manageStoragesPlants = false;
 
   let buyCo2Quotas = false;
   let buyCommodities = false;
@@ -40,29 +39,29 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     }
   }
 
-  // Storage & Plants
-  if (data.plants.some(plant => plant.online === 0)) {
-    enableStoragesPlants = true;
+  // Storage & Plants management
+  if (true) {
+    manageStoragesPlants = true;
   }
 
   // Solar plants
-  const solarPlantsToReenable: string[] = [];
-  const discrepancyThreshold = 0.25;
-  for (const grid of data.energyGrids) {
-    for (const storage of grid.storages) {
-      if (storage.plantsConnected > 0) {
-        const expectedCharge = storage.expectedChargePerSec;
-        const actualCharge = storage.chargePerSec;
-        if (expectedCharge > 0 && actualCharge / expectedCharge < (1 - discrepancyThreshold)) {
-          reenableSolarPlants = true;
-          const affectedPlantIds = data.plants
-            .filter(plant => plant.storageId.toString() === storage.id && plant.plantType === 'solar')
-            .map(plant => plant.plantId);
-          solarPlantsToReenable.push(...affectedPlantIds);
-        }
-      }
-    }
-  }
+  // const solarPlantsToReenable: string[] = [];
+  // const discrepancyThreshold = 0.25;
+  // for (const grid of data.energyGrids) {
+  //   for (const storage of grid.storages) {
+  //     if (storage.plantsConnected > 0) {
+  //       const expectedCharge = storage.expectedChargePerSec;
+  //       const actualCharge = storage.chargePerSec;
+  //       if (expectedCharge > 0 && actualCharge / expectedCharge < (1 - discrepancyThreshold)) {
+  //         reenableSolarPlants = true;
+  //         const affectedPlantIds = data.plants
+  //           .filter(plant => plant.storageId.toString() === storage.id && plant.plantType === 'solar')
+  //           .map(plant => plant.plantId);
+  //         solarPlantsToReenable.push(...affectedPlantIds);
+  //       }
+  //     }
+  //   }
+  // }
 
   // Buy Co2 quotas
   if (data.co2Value < CO2_PRICE_THRESHOLD_MAX && data.emissionPerKwh > 1) {
@@ -100,9 +99,7 @@ export function makeDecisions(data: GameSessionData): TaskDecisions {
     sellHydrogen,
     sellHydrogenSilo,
 
-    enableStoragesPlants,
-    reenableSolarPlants,
-    solarPlantsToReenable,
+    manageStoragesPlants,
 
     buyCo2Quotas,
     buyCommodities,

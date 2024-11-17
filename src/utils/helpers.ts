@@ -60,7 +60,7 @@ export async function withRetry<T>(
   fn: () => Promise<T>,
   retries: number = 3,
   delayMs: number = 120000,
-  onError?: (error: Error, attempt: number) => void
+  onError?: (error: Error, attempt: number) => Promise<void>
 ): Promise<T> {
   let lastError: Error;
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -71,7 +71,7 @@ export async function withRetry<T>(
       console.error(`Attempt ${attempt} failed:`, lastError);
 
       if (onError) {
-        onError(lastError, attempt);
+        await onError(lastError, attempt);
       }
 
       if (attempt < retries) {
@@ -81,4 +81,8 @@ export async function withRetry<T>(
     }
   }
   throw lastError!;
+}
+
+export function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

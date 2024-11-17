@@ -6,6 +6,12 @@ import { FactorsSummary } from '../types/data-storage';
 import { GameSessionData } from '../types/interface';
 
 const SUMMARY_FILE_PATH = path.resolve('energy_data/factorsSummary.json');
+const DEPLETED_FIELDS_FILE_PATH = path.resolve('energy_data/depletedOilFields.json');
+
+interface DepletedOilField {
+  fieldId: string;
+  depletedDate: string;
+}
 
 /**
  * Loads the existing factors summary from the JSON file.
@@ -176,4 +182,23 @@ export function extractFactorsPerGrid(data: GameSessionData): Record<string, Rec
   });
 
   return factorsData;
+}
+
+export async function loadDepletedOilFields(): Promise<DepletedOilField[]> {
+  try {
+    const data = await fs.readFile(DEPLETED_FIELDS_FILE_PATH, 'utf-8');
+    return JSON.parse(data) as DepletedOilField[];
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      // File does not exist, create an empty file and return an empty array
+      await fs.writeFile(DEPLETED_FIELDS_FILE_PATH, '[]', 'utf-8');
+      return [];
+    }
+    throw error;
+  }
+}
+
+export async function saveDepletedOilFields(fields: DepletedOilField[]): Promise<void> {
+  const data = JSON.stringify(fields, null, 2);
+  await fs.writeFile(DEPLETED_FIELDS_FILE_PATH, data, 'utf-8');
 }

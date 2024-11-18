@@ -202,3 +202,41 @@ export async function saveDepletedOilFields(fields: DepletedOilField[]): Promise
   const data = JSON.stringify(fields, null, 2);
   await fs.writeFile(DEPLETED_FIELDS_FILE_PATH, data, 'utf-8');
 }
+
+/**
+ * Marks an oil field as depleted and saves it to the JSON file.
+ * @param fieldId - The ID of the depleted oil field.
+ */
+export async function markOilFieldAsDepleted(fieldId: string): Promise<void> {
+  const depletedFields = await loadDepletedOilFields();
+  const depletedDate = new Date().toISOString();
+
+  // Check if the field is already marked as depleted
+  if (!depletedFields.some(field => field.fieldId === fieldId)) {
+    depletedFields.push({ fieldId, depletedDate });
+    await saveDepletedOilFields(depletedFields);
+  }
+}
+
+/**
+ * Cleans up old entries from the depleted oil fields list.
+ */
+export async function cleanUpDepletedOilFields(): Promise<void> {
+  const depletedFields = await loadDepletedOilFields();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+  const cleanedFields = depletedFields.filter(field => new Date(field.depletedDate) > oneMonthAgo);
+  await saveDepletedOilFields(cleanedFields);
+}
+
+/**
+ * Checks if an oil field is depleted.
+ * @param fieldId - The ID of the oil field to check.
+ * @returns True if the field is depleted, false otherwise.
+ */
+export async function isOilFieldDepleted(fieldId: string): Promise<boolean> {
+  await cleanUpDepletedOilFields();
+  const depletedFields = await loadDepletedOilFields();
+  return depletedFields.some(field => field.fieldId === fieldId);
+}

@@ -169,6 +169,7 @@ export interface VesselInfo {
   routeId: string;
   reverse: boolean; // true = Is on the way back to port, false = Is on the way to the destination
   arrivalTime: number | null;
+  fieldLoc: string;
 }
 
 export interface VesselDestinationInfo {

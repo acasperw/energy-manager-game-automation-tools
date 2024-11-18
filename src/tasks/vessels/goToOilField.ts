@@ -2,6 +2,7 @@ import { Page } from "puppeteer";
 import { VesselInfo, VesselInteractionReport, VesselStatus } from "../../types/interface";
 import { postApiData } from "../../utils/api-requests";
 import { createVesselErrorReport, createVesselReport, processVesselStatus } from "./vessel-helpers";
+import { isOilFieldDepleted } from "../../utils/data-storage";
 
 /**
  * Sends the vessel to the closest oil field or port based on distance.
@@ -12,12 +13,19 @@ export async function goToOilField(page: Page, vesselData: VesselInfo): Promise<
   const vesselStatusHtml = await postApiData<string>(page, `/status-vessel.php?id=${vesselData.id}`);
   const { ports, maxSpeed } = processVesselStatus(vesselStatusHtml);
 
-  if (ports.length === 0) {
-    console.error(`No ports found for vessel ${vesselData.id}`);
-    return createVesselErrorReport(vesselData, `No ports found for vessel ${vesselData.id}`);
+  const validPorts = [];
+  for (const port of ports) {
+    if (!(await isOilFieldDepleted(port.id))) {
+      validPorts.push(port);
+    }
   }
 
-  const closestDest = ports.reduce((prev, curr) => (curr.distance < prev.distance ? curr : prev), ports[0]);
+  if (validPorts.length === 0) {
+    console.error(`No valid ports found for vessel ${vesselData.id}`);
+    return createVesselErrorReport(vesselData, `No valid ports found for vessel ${vesselData.id}`);
+  }
+
+  const closestDest = validPorts.reduce((prev, curr) => (curr.distance < prev.distance ? curr : prev), validPorts[0]);
   const sendSpeed = maxSpeed !== null ? maxSpeed : 16;
   const sendVesselUrl = `/vessel-depart.php?vesselId=${vesselData.id}&destination=${closestDest.id}&speed=${sendSpeed}`;
 

@@ -3,6 +3,8 @@ import { DrillHistoryEntry, ScanPoint, VesselInfo, VesselInteractionReport, Vess
 import { getSliderValuesFromString } from "../../utils/browser-data-helpers";
 import { calculateDistance, createVesselErrorReport, createVesselReport } from "./vessel-helpers";
 import { fetchApiData, postApiData } from "../../utils/api-requests";
+import { markOilFieldAsDepleted } from "../../utils/data-storage";
+import { goToPortOrNextField } from "./goToPortOrNextField";
 
 export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<VesselInteractionReport> {
   try {
@@ -17,7 +19,8 @@ export async function scanForOil(page: Page, vesselData: VesselInfo): Promise<Ve
     const validScanPoint = findValidScanPoint(scanArea, drillHistories, maxRadius);
 
     if (!validScanPoint) {
-      return createVesselErrorReport(vesselData, "No valid scan points available");
+      await markOilFieldAsDepleted(vesselData.fieldLoc);
+      return await goToPortOrNextField(page, vesselData);
     }
 
     await initiateScan(page, vesselData.id, validScanPoint, maxRadius);

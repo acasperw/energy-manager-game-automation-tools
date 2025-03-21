@@ -65,7 +65,20 @@ export async function processEnergyGrid(page: Page, currentGrid: GridStorage, el
 async function clickGridAndWaitForDetails(page: Page, energyGrids: GridStorage) {
   await delay(400);
   await page.waitForSelector('#production-outer', { visible: true });
-  const gridSelector = `#production-outer .production-inner[data-grid="${energyGrids.gridName}"]:not(.hidden) .col-12:not(.pane-discharging):not(.hidden) .col-9.p-row-outer.p-row.pointer:not(.p-row-outer-discharge)`;
+
+  // Find a non-p2x storage ID if available
+  let nonP2xStorageId = null;
+  if (energyGrids.storages && energyGrids.storages.length > 0) {
+    const nonP2xStorage = energyGrids.storages.find(storage => storage.type !== 'p2x');
+    if (nonP2xStorage) {
+      nonP2xStorageId = nonP2xStorage.id;
+    }
+  }
+
+  // Modify selector to target the specific non-p2x storage if found
+  const gridSelector = nonP2xStorageId
+    ? `#production-outer .production-inner[data-grid="${energyGrids.gridName}"]:not(.hidden)[id="production-charge-status-${nonP2xStorageId}"] .col-12:not(.pane-discharging):not(.hidden) .col-9.p-row-outer.p-row.pointer:not(.p-row-outer-discharge)`
+    : `#production-outer .production-inner[data-grid="${energyGrids.gridName}"]:not(.hidden) .col-12:not(.pane-discharging):not(.hidden) .col-9.p-row-outer.p-row.pointer:not(.p-row-outer-discharge)`;
 
   try {
     await page.waitForSelector(gridSelector);

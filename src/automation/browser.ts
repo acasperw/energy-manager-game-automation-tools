@@ -16,6 +16,11 @@ export async function initializeBrowser(): Promise<{ browser: Browser; page: Pag
       defaultViewport: { width: 767, height: 960 }
     });
   }
+  // Set a cookie to enable the legacy map toggle to prevent map popup
+  const oneYearFromNow = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365;
+  await browser.setCookie({ name: 'legacy_map_toggle', value: 'true', domain: new URL(BASE_URL).hostname, path: '/', httpOnly: false, secure: false, expires: oneYearFromNow });
+  await browser.setCookie({ name: 'legacy_map_926150', value: 'event_type_generic', domain: new URL(BASE_URL).hostname, path: '/', httpOnly: false, secure: false, expires: oneYearFromNow });
+
   const page = await browser.newPage();
   return { browser, page };
 }
@@ -78,7 +83,7 @@ export async function captureScreenshot(page: Page, filename: string): Promise<v
   const screenshotPath = path.join(screenshotDir, filename);
   console.log(`Capturing screenshot: ${screenshotPath}`);
   await fs.mkdir(screenshotDir, { recursive: true });
-  await page.screenshot({ path: screenshotPath, fullPage: true });
+  await page.screenshot({ path: screenshotPath as `${string}.png`, fullPage: true });
 }
 
 export async function closeBrowser(): Promise<void> {

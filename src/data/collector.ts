@@ -6,6 +6,7 @@ import * as cheerio from 'cheerio';
 import { hydrogenFormatToTonnes, parseValueToTonnes } from "../utils/helpers";
 import { parseCoordinate } from "../utils/grid-utils";
 import { fetchApiData, postApiData, postApiDataJson } from "../utils/api-requests";
+import { performMaintenance } from "../tasks/preformMaintenance";
 
 export async function fetchGameSessionData(page: Page): Promise<GameSessionData> {
 
@@ -59,6 +60,20 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
     const energyGrids = processEnergyGrids(userData, productionData, demandUpdateResponse, storagePlantCount, storagePlantOutputs);
     const research = parseResearchEndpoint(checkResearchResponse, userMoney, researchSlots);
 
+    // --- Maintenance step for plants with wear > 80% ---
+    let maintenanceCount = 0;
+    for (const plant of plants) {
+      if (plant.wear > 80) {
+        const result = await performMaintenance(page, "plant", plant.plantId);
+        if (result.success) maintenanceCount++;
+        else console.error(`Failed to perform maintenance for plant ${plant.plantId}:`, result.error);
+      }
+    }
+    if (maintenanceCount > 0) {
+      console.log(`Performed maintenance on ${maintenanceCount} plant(s) with wear > 80%.`);
+    }
+    // --- End maintenance step ---
+
     // Vessels
     const vessels = extractVesselInfo(userData.vessel);
     const arrivingVessels = vessels.filter(vessel =>
@@ -97,7 +112,8 @@ export async function fetchGameSessionData(page: Page): Promise<GameSessionData>
       },
       research,
       vessels,
-      rerunTime
+      rerunTime,
+      maintenanceCount
     };
   } catch (error) {
     console.error("Failed to fetch game session data:", error);

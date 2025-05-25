@@ -80,6 +80,8 @@ export interface GameSessionData {
   vessels: VesselInfo[];
 
   rerunTime?: number;
+
+  maintenanceCount?: number; // <-- Added for maintenance reporting
 }
 
 export interface EnergySalesProcess {
